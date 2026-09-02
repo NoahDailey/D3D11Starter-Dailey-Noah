@@ -5,13 +5,15 @@
 
 #include <sstream>
 
-// Include ImGui's Win32 backend and forward declare the window handler function
+// Include ImGui's Win32 backend and forward declare the window handler function 
 // Note: This CANNOT be inside a namespace!
-// Note: The include assumes files are in an "ImGui" folder. Adjust as necessary
-// I am using a ImGUI folder in this solution
-#include "ImGUI/imgui_impl_win32.h"
+// Note: The include assumes files are in an “ImGui” folder. Adjust as necessary
+#include "ImGui/imgui_impl_win32.h"
 extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(
-	HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
+	HWND hWnd,
+	UINT msg,
+	WPARAM wParam,
+	LPARAM lParam);
 
 namespace Window
 {
@@ -261,7 +263,7 @@ void Window::CreateConsoleWindow(int bufferLines, int bufferColumns, int windowL
 // --------------------------------------------------------
 LRESULT Window::ProcessMessage(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
-	// Call ImGui's message handler and exit early if necessary
+	// Call ImGui’s message handler and exit early if necessary
 	if (ImGui_ImplWin32_WndProcHandler(hWnd, uMsg, wParam, lParam))
 		return true;
 

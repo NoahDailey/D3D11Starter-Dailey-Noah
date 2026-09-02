@@ -5,8 +5,6 @@
 #include "PathHelpers.h"
 #include "Window.h"
 
-#include <DirectXMath.h>
-
 // Add the ImGui header files
 #include "ImGUI/imgui.h"
 #include "ImGUI/imgui_impl_dx11.h"
@@ -25,6 +23,10 @@ using namespace DirectX;
 // --------------------------------------------------------
 Game::Game()
 {
+	// Initialize all ImGui variables
+	backgroundColor = { 0.4f, 0.6f, 0.75f, 1.0f };
+	demoVisible = false;
+
 	// Helper methods for loading shaders, creating some basic
 	// geometry to draw and some simple camera matrices.
 	//  - You'll be expanding and/or replacing these later
@@ -244,6 +246,55 @@ void Game::CreateGeometry()
 	}
 }
 
+// Get the ImGui library all the information that it needs to be created
+void Game::ImGuiCreate(float deltaTime)
+{
+	// Feed fresh data to ImGui
+	ImGuiIO& io = ImGui::GetIO();
+	io.DeltaTime = deltaTime;
+	io.DisplaySize.x = (float)Window::Width();
+	io.DisplaySize.y = (float)Window::Height();
+
+	// Reset the frame
+	ImGui_ImplDX11_NewFrame();
+	ImGui_ImplWin32_NewFrame();
+	ImGui::NewFrame();
+
+	// Determine new input capture 
+	Input::SetKeyboardCapture(io.WantCaptureKeyboard);
+	Input::SetMouseCapture(io.WantCaptureMouse);
+
+	// Create a custom ImGui Debug menu
+	ImGui::Begin("Inspector Menu");
+	{
+		// Framerate Tracking
+		// Replace the %f with the next parameter, and format as a float
+		ImGui::Text("Framerate: %f fps", ImGui::GetIO().Framerate);
+
+		// Window Size
+		// Replace each %d with the next parameter, and format as decimal integers
+		// The "x" will be printed as-is between the numbers, like so: 800x600
+		ImGui::Text("Window Resolution: %dx%d", Window::Width(), Window::Height());
+
+		// Color Picker for selecting different colors for the background
+		ImGui::ColorEdit4("Background Color", &backgroundColor.x);
+
+		// Button for displaying the demo menu when true
+		if (ImGui::Button("Show Demo Window"))
+			demoVisible = !demoVisible;
+
+		if (demoVisible)
+			ImGui::ShowDemoWindow();
+
+		/* ADD 3 UNIQUE ELEMENTS HERE */
+		// Elements don't have to fully work but would be really cool if they did
+	}
+	ImGui::End();
+
+	// Show the demo window
+	//ImGui::ShowDemoWindow();
+}
+
 
 // --------------------------------------------------------
 // Handle resizing to match the new window size
@@ -260,6 +311,9 @@ void Game::OnResize()
 // --------------------------------------------------------
 void Game::Update(float deltaTime, float totalTime)
 {
+	// Inform the ImGui of the relevant data
+	Game::ImGuiCreate(deltaTime);
+
 	// Example input checking: Quit if the escape key is pressed
 	if (Input::KeyDown(VK_ESCAPE))
 		Window::Quit();
@@ -276,8 +330,7 @@ void Game::Draw(float deltaTime, float totalTime)
 	// - At the beginning of Game::Draw() before drawing *anything*
 	{
 		// Clear the back buffer (erase what's on screen) and depth buffer
-		const float color[4] = { 0.4f, 0.6f, 0.75f, 0.0f };
-		Graphics::Context->ClearRenderTargetView(Graphics::BackBufferRTV.Get(),	color);
+		Graphics::Context->ClearRenderTargetView(Graphics::BackBufferRTV.Get(),	&backgroundColor.x);
 		Graphics::Context->ClearDepthStencilView(Graphics::DepthBufferDSV.Get(), D3D11_CLEAR_DEPTH, 1.0f, 0);
 	}
 
@@ -307,6 +360,9 @@ void Game::Draw(float deltaTime, float totalTime)
 			0);    // Offset to add to each index when looking up vertices
 	}
 
+	ImGui::Render(); // Truns this frame's UI into rednerable triangles
+	ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData()); // Draws it to the screen
+
 	// Frame END
 	// - These should happen exactly ONCE PER FRAME
 	// - At the very end of the frame (after drawing *everything*)
@@ -324,6 +380,4 @@ void Game::Draw(float deltaTime, float totalTime)
 			Graphics::DepthBufferDSV.Get());
 	}
 }
-
-
 
