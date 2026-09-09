@@ -26,6 +26,9 @@ Game::Game()
 	// Initialize all ImGui variables
 	backgroundColor = { 0.4f, 0.6f, 0.75f, 1.0f };
 	demoVisible = false;
+	menuStyle = 1;
+	tempFloat = 50.0f;
+	checkboxToggle = false;
 
 	// Helper methods for loading shaders, creating some basic
 	// geometry to draw and some simple camera matrices.
@@ -286,13 +289,38 @@ void Game::ImGuiCreate(float deltaTime)
 		if (demoVisible)
 			ImGui::ShowDemoWindow();
 
-		/* ADD 3 UNIQUE ELEMENTS HERE */
-		// Elements don't have to fully work but would be really cool if they did
+		// Unique Element 1: A Button that when pressed changes the menu style
+		if (ImGui::Button("Change Style")) 
+		{
+			if (menuStyle == 3) {
+				menuStyle = 1;
+			}
+			else {
+				menuStyle++;
+			}
+		}
+
+		switch (menuStyle) {
+			case 1:
+				ImGui::StyleColorsDark();
+				break;
+			case 2:
+				ImGui::StyleColorsLight();
+				break;
+			case 3:
+				ImGui::StyleColorsClassic();
+				break;
+			default:
+				ImGui::StyleColorsDark();
+		}
+
+		// A random slider for the moment
+		ImGui::SliderFloat("Temp Slider", &tempFloat, 0.0f, 100.0f);
+
+		// A temp checkbox
+		ImGui::Checkbox("Temp Checkbox", &checkboxToggle);
 	}
 	ImGui::End();
-
-	// Show the demo window
-	//ImGui::ShowDemoWindow();
 }
 
 
@@ -369,9 +397,9 @@ void Game::Draw(float deltaTime, float totalTime)
 	{
 		// Present at the end of the frame
 		bool vsync = Graphics::VsyncState();
-		Graphics::SwapChain->Present(
-			vsync ? 1 : 0,
-			vsync ? 0 : DXGI_PRESENT_ALLOW_TEARING);
+		//Graphics::SwapChain->Present(
+		//	vsync ? 1 : 0,
+		//	vsync ? 0 : DXGI_PRESENT_ALLOW_TEARING);
 
 		// Re-bind back buffer and depth buffer after presenting
 		Graphics::Context->OMSetRenderTargets(
