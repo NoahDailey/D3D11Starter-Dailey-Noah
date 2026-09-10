@@ -5,6 +5,7 @@
 #include <wrl/client.h>
 #include <DirectXMath.h>
 #include <memory>
+#include <vector>
 
 class Game
 {
@@ -46,7 +47,7 @@ private:
 	bool demoVisible;
 	int menuStyle;
 
-	// Create shared_ptrs for the mesh shapes
-	std::shared_ptr<Mesh> basicTriangle;
+	// Create shared_ptr vector for the mesh shapes
+	std::vector<std::shared_ptr<Mesh>> meshes;
 };
 

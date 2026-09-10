@@ -178,7 +178,8 @@ void Game::CreateGeometry()
 	unsigned int btIndices[] = { 0, 1, 2 };
 
 	// Create the shared_ptr to the triangle
-	basicTriangle = std::make_shared<Mesh>(btVertices, 3, btIndices, 3);
+	std::shared_ptr<Mesh> basicTriangle = std::make_shared<Mesh>(btVertices, 3, btIndices, 3);
+	meshes.push_back(basicTriangle);
 
 	/* OLD BUFFER CREATION */
 	//// Create a VERTEX BUFFER
@@ -346,7 +347,9 @@ void Game::Draw(float deltaTime, float totalTime)
 	//// - These steps are generally repeated for EACH object you draw
 	//// - Other Direct3D calls will also be necessary to do more complex things
 	{
-		basicTriangle->Draw();
+		for (std::shared_ptr<Mesh> mesh : meshes) {
+			mesh->Draw();
+		}
 	}
 
 	/* OLD DRAW INFORMATION */

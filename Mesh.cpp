@@ -27,7 +27,7 @@ Mesh::Mesh(Vertex* vertices, unsigned int verticesCount, unsigned int* indices, 
 		// - This is how we initially fill the buffer with data
 		// - Essentially, we're specifying a pointer to the data to copy
 		D3D11_SUBRESOURCE_DATA initialVertexData = {};
-		initialVertexData.pSysMem = &vertices; // pSysMem = Pointer to System Memory
+		initialVertexData.pSysMem = vertices; // pSysMem = Pointer to System Memory
 
 		// Actually create the buffer on the GPU with the initial data
 		// - Once we do this, we'll NEVER CHANGE DATA IN THE BUFFER AGAIN
@@ -53,7 +53,7 @@ Mesh::Mesh(Vertex* vertices, unsigned int verticesCount, unsigned int* indices, 
 
 		// Specify the initial data for this buffer, similar to above
 		D3D11_SUBRESOURCE_DATA initialIndexData = {};
-		initialIndexData.pSysMem = &indices; // pSysMem = Pointer to System Memory
+		initialIndexData.pSysMem = indices; // pSysMem = Pointer to System Memory
 
 		// Actually create the buffer with the initial data
 		// - Once we do this, we'll NEVER CHANGE THE BUFFER AGAIN
@@ -104,7 +104,7 @@ void Mesh::Draw()
 	//  - DrawIndexed() uses the currently set INDEX BUFFER to look up corresponding
 	//     vertices in the currently set VERTEX BUFFER
 	Graphics::Context->DrawIndexed(
-		3,     // The number of indices to use (we could draw a subset if we wanted)
+		indicesCount,     // The number of indices to use (we could draw a subset if we wanted)
 		0,     // Offset to the first index we want to use
 		0);    // Offset to add to each index when looking up vertices
 }
