@@ -42,8 +42,5 @@ private:
 	// ImGui-related variables
 	DirectX::XMFLOAT4 backgroundColor;
 	bool demoVisible;
-	int menuStyle;
-	float tempFloat;
-	bool checkboxToggle;
 };
 
