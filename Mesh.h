@@ -3,13 +3,12 @@
 #include <d3d11.h>
 #include <wrl/client.h>
 #include <DirectXMath.h>
-#include "Vertex.h"
 
 class Mesh 
 {
 public:
 	// Construction and Deconstruction
-	Mesh(Vertex vertices[], unsigned int numberOfVertices, unsigned int indices[], unsigned int numberOfIndices);
+	Mesh(Vertex vertices[], unsigned int indices[]);
 	~Mesh();
 	
 	// Methods for creating the buffers
