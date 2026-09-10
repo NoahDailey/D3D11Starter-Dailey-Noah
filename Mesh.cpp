@@ -1,9 +1,10 @@
 #include "Mesh.h"
 #include "Graphics.h"
 
-Mesh::Mesh(Vertex* vertices, unsigned int verticesCount, unsigned int* indices, unsigned int indicesCount)
+Mesh::Mesh(Vertex* vertices, unsigned int verticesCount, unsigned int* indices, unsigned int indicesCount, char* name)
 {
 	// Set the count of the vertices and indices
+	this->name = name;
 	this->verticesCount = verticesCount;
 	this->indicesCount = indicesCount;
 
@@ -75,14 +76,19 @@ Microsoft::WRL::ComPtr<ID3D11Buffer> Mesh::GetIndexBuffer()
 	return indexBuffer;
 }
 
-unsigned int Mesh::GetVertexCount()
+unsigned int Mesh::GetVertexCount() const
 {
 	return verticesCount;
 }
 
-unsigned int Mesh::GetIndexCount()
+unsigned int Mesh::GetIndexCount() const
 {
 	return indicesCount;
+}
+
+char* Mesh::GetShapeName() const
+{
+	return name;
 }
 
 void Mesh::Draw()

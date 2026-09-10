@@ -170,7 +170,7 @@ void Game::CreateGeometry()
 	XMFLOAT4 black = XMFLOAT4{ 0.0f, 0.0f, 0.0f, 1.0f };
 	XMFLOAT4 white = XMFLOAT4{ 1.0f, 1.0f, 1.0f, 1.0f };
 
-	// Set up the vertices of the triangle we would like to draw
+	// Set up the vertices and indices of the triangle we would like to draw
 	/* Basic Triangle */
 	Vertex triangleVertices[] =
 	{
@@ -178,27 +178,29 @@ void Game::CreateGeometry()
 		{ XMFLOAT3(+0.5f, -0.5f, +0.0f), blue },
 		{ XMFLOAT3(-0.5f, -0.5f, +0.0f), green }
 	};
-
 	unsigned int triangleIndices[] = { 0, 1, 2 };
 
+	// Give the shape a name for displaying in our Inspector Menu
+	char triangleName[] = "Triangle";
+
 	// Create the shared_ptr to the triangle
-	meshes.push_back(std::make_shared<Mesh>(triangleVertices, 3, triangleIndices, 3));
+	meshes.push_back(std::make_shared<Mesh>(triangleVertices, 3, triangleIndices, 3, triangleName));
 
 	/* Rectangle */
-	Vertex rectangleVertices[] =
+	Vertex rectVertices[] =
 	{
 		{ XMFLOAT3(-0.3f, +0.5f, +0.0f), yellow },
 		{ XMFLOAT3(-0.3f, +0.3f, +0.0f), yellow },
 		{ XMFLOAT3(-0.5f, +0.3f, +0.0f), cyan },
 		{ XMFLOAT3(-0.5f, +0.5f, +0.0f), cyan }
 	};
-
-	unsigned int rectangleIndices[] =
+	unsigned int rectIndices[] =
 	{
 		0, 1, 2,
 		0, 2, 3
 	};
-	meshes.push_back(std::make_shared<Mesh>(rectangleVertices, 4, rectangleIndices, 6));
+	char rectName[] = "Rectangle";
+	meshes.push_back(std::make_shared<Mesh>(rectVertices, 4, rectIndices, 6, rectName));
 
 	/* Hexagon Shape */
 	Vertex hexagonVertices[] = {
@@ -219,7 +221,8 @@ void Game::CreateGeometry()
 		0, 4, 6, // Bottom-Right Triangle
 		0, 6, 5 // Bottom Triangle
 	};
-	meshes.push_back(std::make_shared<Mesh>(hexagonVertices, 7, hexagonIndices, 18));
+	char hexagonName[] = "Hexagon";
+	meshes.push_back(std::make_shared<Mesh>(hexagonVertices, 7, hexagonIndices, 18, hexagonName));
 }
 
 // Get the ImGui library all the information that it needs to be created
@@ -243,37 +246,39 @@ void Game::ImGuiCreate(float deltaTime)
 	// Create a custom ImGui Debug menu
 	ImGui::Begin("Inspector Menu");
 	{
-		// Framerate Tracking
-		// Replace the %f with the next parameter, and format as a float
-		ImGui::Text("Framerate: %f fps", ImGui::GetIO().Framerate);
+		// Create a tree node for the debugging information
+		if (ImGui::TreeNode("Debuging")) {
+			// Framerate Tracking
+			// Replace the %f with the next parameter, and format as a float
+			ImGui::Text("Framerate: %f fps", ImGui::GetIO().Framerate);
 
-		// Window Size
-		// Replace each %d with the next parameter, and format as decimal integers
-		// The "x" will be printed as-is between the numbers, like so: 800x600
-		ImGui::Text("Window Resolution: %dx%d", Window::Width(), Window::Height());
+			// Window Size
+			// Replace each %d with the next parameter, and format as decimal integers
+			// The "x" will be printed as-is between the numbers, like so: 800x600
+			ImGui::Text("Window Resolution: %dx%d", Window::Width(), Window::Height());
 
-		// Color Picker for selecting different colors for the background
-		ImGui::ColorEdit4("Background Color", &backgroundColor.x);
+			// Color Picker for selecting different colors for the background
+			ImGui::ColorEdit4("Background Color", &backgroundColor.x);
 
-		// Button for displaying the demo menu when true
-		if (ImGui::Button("Show Demo Window"))
-			demoVisible = !demoVisible;
+			// Button for displaying the demo menu when true
+			if (ImGui::Button("Show Demo Window"))
+				demoVisible = !demoVisible;
 
-		if (demoVisible)
-			ImGui::ShowDemoWindow();
+			if (demoVisible)
+				ImGui::ShowDemoWindow();
 
-		// Unique Element 1: A Button that when pressed changes the menu style
-		if (ImGui::Button("Change Style")) 
-		{
-			if (menuStyle == 3) {
-				menuStyle = 1;
+			// Unique Element 1: A Button that when pressed changes the menu style
+			if (ImGui::Button("Change Style"))
+			{
+				if (menuStyle == 3) {
+					menuStyle = 1;
+				}
+				else {
+					menuStyle++;
+				}
 			}
-			else {
-				menuStyle++;
-			}
-		}
 
-		switch (menuStyle) {
+			switch (menuStyle) {
 			case 1:
 				ImGui::StyleColorsDark();
 				break;
@@ -285,6 +290,22 @@ void Game::ImGuiCreate(float deltaTime)
 				break;
 			default:
 				ImGui::StyleColorsDark();
+			}
+			ImGui::TreePop();
+		}
+
+		// Create a second tree node for the purpose of viewing Mesh information
+		if (ImGui::TreeNode("Mesh Details")) {
+			// Display the information for each mesh
+			for (std::shared_ptr<Mesh> mesh : meshes) {
+				if (ImGui::TreeNode(mesh->GetShapeName())) {
+					ImGui::Text("Triangles: %i", (mesh->GetIndexCount() / 3));
+					ImGui::Text("Vertices: %i", mesh->GetVertexCount());
+					ImGui::Text("Indices: %i", mesh->GetIndexCount());
+					ImGui::TreePop();
+				}
+			}
+			ImGui::TreePop();
 		}
 	}
 	ImGui::End();
