@@ -43,7 +43,7 @@ private:
 	DirectX::XMFLOAT4 backgroundColor;
 	bool demoVisible;
 	int menuStyle;
-	float tempFloat;
-	bool checkboxToggle;
+
+	// Create shared_ptrs for the mesh shapes
 };
 
