@@ -1,5 +1,4 @@
 #pragma once
-
 #include "Vertex.h"
 
 #include <d3d11.h>

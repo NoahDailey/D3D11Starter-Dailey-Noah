@@ -1,8 +1,10 @@
 #pragma once
+#include "Mesh.h"
 
 #include <d3d11.h>
 #include <wrl/client.h>
 #include <DirectXMath.h>
+#include <memory>
 
 class Game
 {
@@ -45,5 +47,6 @@ private:
 	int menuStyle;
 
 	// Create shared_ptrs for the mesh shapes
+	std::shared_ptr<Mesh> basicTriangle;
 };
 

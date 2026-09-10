@@ -167,30 +167,18 @@ void Game::CreateGeometry()
 	XMFLOAT4 blue = XMFLOAT4(0.0f, 0.0f, 1.0f, 1.0f);
 
 	// Set up the vertices of the triangle we would like to draw
-	// - We're going to copy this array, exactly as it exists in CPU memory
-	//    over to a Direct3D-controlled data structure on the GPU (the vertex buffer)
-	// - Note: Since we don't have a camera or really any concept of
-	//    a "3d world" yet, we're simply describing positions within the
-	//    bounds of how the rasterizer sees our screen: [-1 to +1] on X and Y
-	// - This means (0,0) is at the very center of the screen.
-	// - These are known as "Normalized Device Coordinates" or "Homogeneous 
-	//    Screen Coords", which are ways to describe a position without
-	//    knowing the exact size (in pixels) of the image/window/etc.  
-	// - Long story short: Resizing the window also resizes the triangle,
-	//    since we're describing the triangle in terms of the window itself
-	Vertex vertices[] =
+	/* Basic Triangle */
+	Vertex btVertices[] =
 	{
 		{ XMFLOAT3(+0.0f, +0.5f, +0.0f), red },
 		{ XMFLOAT3(+0.5f, -0.5f, +0.0f), blue },
 		{ XMFLOAT3(-0.5f, -0.5f, +0.0f), green },
 	};
 
-	// Set up indices, which tell us which vertices to use and in which order
-	// - This is redundant for just 3 vertices, but will be more useful later
-	// - Indices are technically not required if the vertices are in the buffer 
-	//    in the correct order and each one will be used exactly once
-	// - But just to see how it's done...
-	unsigned int indices[] = { 0, 1, 2 };
+	unsigned int btIndices[] = { 0, 1, 2 };
+
+	// Create the shared_ptr to the triangle
+	basicTriangle = std::make_shared<Mesh>(btVertices, 3, btIndices, 3);
 
 	/* OLD BUFFER CREATION */
 	//// Create a VERTEX BUFFER
@@ -358,7 +346,7 @@ void Game::Draw(float deltaTime, float totalTime)
 	//// - These steps are generally repeated for EACH object you draw
 	//// - Other Direct3D calls will also be necessary to do more complex things
 	{
-
+		basicTriangle->Draw();
 	}
 
 	/* OLD DRAW INFORMATION */
