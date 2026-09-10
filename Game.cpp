@@ -165,37 +165,61 @@ void Game::CreateGeometry()
 	XMFLOAT4 red = XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f);
 	XMFLOAT4 green = XMFLOAT4(0.0f, 1.0f, 0.0f, 1.0f);
 	XMFLOAT4 blue = XMFLOAT4(0.0f, 0.0f, 1.0f, 1.0f);
-	XMFLOAT4 yellow = XMFLOAT4{ 1.0f, 1.0f, 0.0f, 1.0f };
+	XMFLOAT4 yellow = XMFLOAT4(1.0f, 1.0f, 0.0f, 1.0f);
+	XMFLOAT4 cyan = XMFLOAT4(0.0f, 1.0f, 1.0f, 1.0f);
+	XMFLOAT4 black = XMFLOAT4{ 0.0f, 0.0f, 0.0f, 1.0f };
+	XMFLOAT4 white = XMFLOAT4{ 1.0f, 1.0f, 1.0f, 1.0f };
 
 	// Set up the vertices of the triangle we would like to draw
 	/* Basic Triangle */
-	Vertex btVertices[] =
+	Vertex triangleVertices[] =
 	{
 		{ XMFLOAT3(+0.0f, +0.5f, +0.0f), red },
 		{ XMFLOAT3(+0.5f, -0.5f, +0.0f), blue },
 		{ XMFLOAT3(-0.5f, -0.5f, +0.0f), green }
 	};
 
-	unsigned int btIndices[] = { 0, 1, 2 };
+	unsigned int triangleIndices[] = { 0, 1, 2 };
 
 	// Create the shared_ptr to the triangle
-	meshes.push_back(std::make_shared<Mesh>(btVertices, 3, btIndices, 3));
+	meshes.push_back(std::make_shared<Mesh>(triangleVertices, 3, triangleIndices, 3));
 
 	/* Rectangle */
-	Vertex rVertices[] =
+	Vertex rectangleVertices[] =
 	{
-		{ XMFLOAT3(-0.3f, +0.5f, +0.0f), red },
-		{ XMFLOAT3(-0.3f, +0.3f, +0.0f), red },
-		{ XMFLOAT3(-0.5f, +0.3f, +0.0f), blue },
-		{ XMFLOAT3(-0.5f, +0.5f, +0.0f), blue }
+		{ XMFLOAT3(-0.3f, +0.5f, +0.0f), yellow },
+		{ XMFLOAT3(-0.3f, +0.3f, +0.0f), yellow },
+		{ XMFLOAT3(-0.5f, +0.3f, +0.0f), cyan },
+		{ XMFLOAT3(-0.5f, +0.5f, +0.0f), cyan }
 	};
 
-	unsigned int rIndices[] =
+	unsigned int rectangleIndices[] =
 	{
 		0, 1, 2,
 		0, 2, 3
 	};
-	meshes.push_back(std::make_shared<Mesh>(rVertices, 4, rIndices, 6));
+	meshes.push_back(std::make_shared<Mesh>(rectangleVertices, 4, rectangleIndices, 6));
+
+	/* Hexagon Shape */
+	Vertex hexagonVertices[] = {
+		{ XMFLOAT3(+0.5f, +0.5f, +0.0f), black }, // Center
+		{ XMFLOAT3(+0.45f, +0.6f, +0.0f), white }, // Top-Left
+		{ XMFLOAT3(+0.55f, +0.6f, +0.0f), white }, // Top-Right
+		{ XMFLOAT3(+0.4f, +0.5f, +0.0f), white }, // Left
+		{ XMFLOAT3(+0.6f, +0.5f, +0.0f), white }, // Right
+		{ XMFLOAT3(+0.45f, +0.4f, +0.0f), white }, // Bottom-Left
+		{ XMFLOAT3(+0.55f, +0.4f, +0.0f), white } // Bottom-Right
+	};
+	unsigned int hexagonIndices[] =
+	{
+		0, 1, 2, // Top Triangle
+		0, 3, 1, // Top-Left Triangle
+		0, 2, 4, // Top-Right Triangle
+		0, 5, 3, // Bottom-Left Triangle
+		0, 4, 6, // Bottom-Right Triangle
+		0, 6, 5 // Bottom Triangle
+	};
+	meshes.push_back(std::make_shared<Mesh>(hexagonVertices, 7, hexagonIndices, 18));
 }
 
 // Get the ImGui library all the information that it needs to be created
