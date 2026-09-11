@@ -180,11 +180,8 @@ void Game::CreateGeometry()
 	};
 	unsigned int triangleIndices[] = { 0, 1, 2 };
 
-	// Give the shape a name for displaying in our Inspector Menu
-	char triangleName[] = "Triangle";
-
 	// Create the shared_ptr to the triangle
-	meshes.push_back(std::make_shared<Mesh>(triangleVertices, 3, triangleIndices, 3, triangleName));
+	meshes.push_back(std::make_shared<Mesh>(triangleVertices, 3, triangleIndices, 3, "Triangle"));
 
 	/* Rectangle */
 	Vertex rectVertices[] =
@@ -199,8 +196,7 @@ void Game::CreateGeometry()
 		0, 1, 2,
 		0, 2, 3
 	};
-	char rectName[] = "Rectangle";
-	meshes.push_back(std::make_shared<Mesh>(rectVertices, 4, rectIndices, 6, rectName));
+	meshes.push_back(std::make_shared<Mesh>(rectVertices, 4, rectIndices, 6, "Rectangle"));
 
 	/* Hexagon Shape */
 	Vertex hexagonVertices[] = {
@@ -221,8 +217,7 @@ void Game::CreateGeometry()
 		0, 4, 6, // Bottom-Right Triangle
 		0, 6, 5 // Bottom Triangle
 	};
-	char hexagonName[] = "Hexagon";
-	meshes.push_back(std::make_shared<Mesh>(hexagonVertices, 7, hexagonIndices, 18, hexagonName));
+	meshes.push_back(std::make_shared<Mesh>(hexagonVertices, 7, hexagonIndices, 18, "Hexagon"));
 }
 
 // Get the ImGui library all the information that it needs to be created
@@ -297,38 +292,17 @@ void Game::ImGuiCreate(float deltaTime)
 		// Create a second tree node for the purpose of viewing Mesh information
 		if (ImGui::TreeNode("Mesh Details")) {
 			// Display the information for each individual mesh
-			/* Triangle Node */
-			if (ImGui::TreeNode("Triangle")) {
-				ImGui::Text("Triangles: %i", (meshes[0]->GetIndexCount() / 3));
-				ImGui::Text("Vertices: %i", meshes[0]->GetVertexCount());
-				ImGui::Text("Indices: %i", meshes[0]->GetIndexCount());
-				ImGui::TreePop();
+			unsigned int index = 0;
+			for (std::shared_ptr<Mesh> mesh : meshes) {
+				ImGui::PushID(index);
+				if (ImGui::TreeNode(mesh->GetShapeName())) {
+					ImGui::Text("Triangles: %i", (mesh->GetIndexCount() / 3));
+					ImGui::Text("Vertices: %i", mesh->GetVertexCount());
+					ImGui::Text("Indices: %i", mesh->GetIndexCount());
+					ImGui::TreePop();
+				}
+				ImGui::PopID();
 			}
-			/* Rectangle Node */
-			if (ImGui::TreeNode("Rectangle")) {
-				ImGui::Text("Triangles: %i", (meshes[1]->GetIndexCount() / 3));
-				ImGui::Text("Vertices: %i", meshes[1]->GetVertexCount());
-				ImGui::Text("Indices: %i", meshes[1]->GetIndexCount());
-				ImGui::TreePop();
-			}
-			/* Hexagon Node */
-			if (ImGui::TreeNode("Hexagon")) {
-				ImGui::Text("Triangles: %i", (meshes[2]->GetIndexCount() / 3));
-				ImGui::Text("Vertices: %i", meshes[2]->GetVertexCount());
-				ImGui::Text("Indices: %i", meshes[2]->GetIndexCount());
-				ImGui::TreePop();
-			}
-			/* This was a failed attempt at making a call to the Mesh class
-				and pulling the name provided to the shape during construction */
-			/* Will attempt to return to this at a later point */
-			//for (std::shared_ptr<Mesh> mesh : meshes) {
-			//	if (ImGui::TreeNode(mesh->GetShapeName())) {
-			//		ImGui::Text("Triangles: %i", (mesh->GetIndexCount() / 3));
-			//		ImGui::Text("Vertices: %i", mesh->GetVertexCount());
-			//		ImGui::Text("Indices: %i", mesh->GetIndexCount());
-			//		ImGui::TreePop();
-			//	}
-			//}
 			ImGui::TreePop();
 		}
 	}

@@ -1,7 +1,7 @@
 #include "Mesh.h"
 #include "Graphics.h"
 
-Mesh::Mesh(Vertex* vertices, unsigned int verticesCount, unsigned int* indices, unsigned int indicesCount, char* name)
+Mesh::Mesh(Vertex* vertices, unsigned int verticesCount, unsigned int* indices, unsigned int indicesCount, const char* name)
 {
 	// Set the count of the vertices and indices
 	this->name = name;
@@ -87,7 +87,7 @@ unsigned int Mesh::GetIndexCount() const
 	return indicesCount;
 }
 
-char* Mesh::GetShapeName() const
+const char* Mesh::GetShapeName() const
 {
 	return name;
 }

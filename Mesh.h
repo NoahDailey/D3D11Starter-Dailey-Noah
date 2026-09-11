@@ -16,10 +16,10 @@ private:
 	unsigned int indicesCount;
 	
 	// Char pointer for the name
-	char* name;
+	const char* name;
 public:
 	// Constructor/Deconstructor
-	Mesh(Vertex* vertices, unsigned int verticesCount, unsigned int* indices, unsigned int indicesCount, char* name);
+	Mesh(Vertex* vertices, unsigned int verticesCount, unsigned int* indices, unsigned int indicesCount, const char* name);
 	~Mesh();
 
 	// Get properties
@@ -27,7 +27,7 @@ public:
 	Microsoft::WRL::ComPtr<ID3D11Buffer> GetIndexBuffer();
 	unsigned int GetVertexCount() const;
 	unsigned int GetIndexCount() const;
-	char* GetShapeName() const;
+	const char* GetShapeName() const;
 
 	// Draw method for drawing the mesh shape
 	void Draw();
