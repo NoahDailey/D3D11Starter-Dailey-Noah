@@ -318,9 +318,11 @@ void Game::ImGuiCreate(float deltaTime)
 				ImGui::Text("Indices: %i", meshes[2]->GetIndexCount());
 				ImGui::TreePop();
 			}
-			//// Display the information for each mesh
+			/* This was a failed attempt at making a call to the Mesh class
+				and pulling the name provided to the shape during construction */
+			/* Will attempt to return to this at a later point */
 			//for (std::shared_ptr<Mesh> mesh : meshes) {
-			//	if (ImGui::TreeNode(mesh->GetShapeName())) {
+			//	if (ImGui::TreeNode("Mesh")) {
 			//		ImGui::Text("Triangles: %i", (mesh->GetIndexCount() / 3));
 			//		ImGui::Text("Vertices: %i", mesh->GetVertexCount());
 			//		ImGui::Text("Indices: %i", mesh->GetIndexCount());

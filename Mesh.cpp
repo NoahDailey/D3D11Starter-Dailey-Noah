@@ -64,6 +64,7 @@ Mesh::Mesh(Vertex* vertices, unsigned int verticesCount, unsigned int* indices, 
 
 Mesh::~Mesh()
 {
+	name = nullptr;
 }
 
 Microsoft::WRL::ComPtr<ID3D11Buffer> Mesh::GetVertexBuffer()
