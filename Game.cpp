@@ -322,7 +322,7 @@ void Game::ImGuiCreate(float deltaTime)
 				and pulling the name provided to the shape during construction */
 			/* Will attempt to return to this at a later point */
 			//for (std::shared_ptr<Mesh> mesh : meshes) {
-			//	if (ImGui::TreeNode("Mesh")) {
+			//	if (ImGui::TreeNode(mesh->GetShapeName())) {
 			//		ImGui::Text("Triangles: %i", (mesh->GetIndexCount() / 3));
 			//		ImGui::Text("Vertices: %i", mesh->GetVertexCount());
 			//		ImGui::Text("Indices: %i", mesh->GetIndexCount());
