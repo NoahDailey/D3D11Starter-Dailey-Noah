@@ -296,15 +296,37 @@ void Game::ImGuiCreate(float deltaTime)
 
 		// Create a second tree node for the purpose of viewing Mesh information
 		if (ImGui::TreeNode("Mesh Details")) {
-			// Display the information for each mesh
-			for (std::shared_ptr<Mesh> mesh : meshes) {
-				if (ImGui::TreeNode(mesh->GetShapeName())) {
-					ImGui::Text("Triangles: %i", (mesh->GetIndexCount() / 3));
-					ImGui::Text("Vertices: %i", mesh->GetVertexCount());
-					ImGui::Text("Indices: %i", mesh->GetIndexCount());
-					ImGui::TreePop();
-				}
+			// Display the information for each individual mesh
+			/* Triangle Node */
+			if (ImGui::TreeNode("Triangle")) {
+				ImGui::Text("Triangles: %i", (meshes[0]->GetIndexCount() / 3));
+				ImGui::Text("Vertices: %i", meshes[0]->GetVertexCount());
+				ImGui::Text("Indices: %i", meshes[0]->GetIndexCount());
+				ImGui::TreePop();
 			}
+			/* Rectangle Node */
+			if (ImGui::TreeNode("Rectangle")) {
+				ImGui::Text("Triangles: %i", (meshes[1]->GetIndexCount() / 3));
+				ImGui::Text("Vertices: %i", meshes[1]->GetVertexCount());
+				ImGui::Text("Indices: %i", meshes[1]->GetIndexCount());
+				ImGui::TreePop();
+			}
+			/* Hexagon Node */
+			if (ImGui::TreeNode("Hexagon")) {
+				ImGui::Text("Triangles: %i", (meshes[2]->GetIndexCount() / 3));
+				ImGui::Text("Vertices: %i", meshes[2]->GetVertexCount());
+				ImGui::Text("Indices: %i", meshes[2]->GetIndexCount());
+				ImGui::TreePop();
+			}
+			//// Display the information for each mesh
+			//for (std::shared_ptr<Mesh> mesh : meshes) {
+			//	if (ImGui::TreeNode(mesh->GetShapeName())) {
+			//		ImGui::Text("Triangles: %i", (mesh->GetIndexCount() / 3));
+			//		ImGui::Text("Vertices: %i", mesh->GetVertexCount());
+			//		ImGui::Text("Indices: %i", mesh->GetIndexCount());
+			//		ImGui::TreePop();
+			//	}
+			//}
 			ImGui::TreePop();
 		}
 	}
