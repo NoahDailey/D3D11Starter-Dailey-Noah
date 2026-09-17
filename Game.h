@@ -38,10 +38,14 @@ private:
 	Microsoft::WRL::ComPtr<ID3D11VertexShader> vertexShader;
 	Microsoft::WRL::ComPtr<ID3D11InputLayout> inputLayout;
 
+	Microsoft::WRL::ComPtr<ID3D11Buffer> constantBuffer;
+
 	// ImGui-related variables
 	DirectX::XMFLOAT4 backgroundColor;
 	bool demoVisible;
 	int menuStyle;
+	DirectX::XMFLOAT4 colorTint;
+	DirectX::XMFLOAT3 offset;
 
 	// Create shared_ptr vector for the mesh shapes
 	std::vector<std::shared_ptr<Mesh>> meshes;

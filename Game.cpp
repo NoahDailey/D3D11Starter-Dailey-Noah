@@ -4,6 +4,7 @@
 #include "Input.h"
 #include "PathHelpers.h"
 #include "Window.h"
+#include "BufferStructs.h"
 
 // Add the ImGui header files
 #include "ImGUI/imgui.h"
@@ -27,6 +28,8 @@ Game::Game()
 	backgroundColor = { 0.4f, 0.6f, 0.75f, 1.0f };
 	demoVisible = false;
 	menuStyle = 1;
+	colorTint = { 1.0f, 0.0f, 0.0f, 1.0f };
+	offset = { 1.0f, 0.0f, 0.0f };
 
 	// Helper methods for loading shaders, creating some basic
 	// geometry to draw and some simple camera matrices.
@@ -54,6 +57,30 @@ Game::Game()
 		//    these calls will need to happen multiple times per frame
 		Graphics::Context->VSSetShader(vertexShader.Get(), 0, 0);
 		Graphics::Context->PSSetShader(pixelShader.Get(), 0, 0);
+	}
+
+	// Setup my constant buffer
+	{
+		// Calculate the next biggest multiple of 16
+		int size = sizeof(VSExternalData);
+		size = (size + 15) / 16 * 16;
+
+		D3D11_BUFFER_DESC cbDesc{};
+		cbDesc.Usage = D3D11_USAGE_DYNAMIC;
+		cbDesc.ByteWidth = size;
+		cbDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+		cbDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+		cbDesc.MiscFlags = 0;
+		cbDesc.StructureByteStride = 0;
+
+		Graphics::Device->CreateBuffer(&cbDesc, 0, constantBuffer.GetAddressOf());
+
+		// Bind the constant buffer
+		// to the proper stage of the rendering pipeline
+		Graphics::Context->VSSetConstantBuffers(
+			0, // Must match cbuffer register in shader!!!!
+			1, // The number of buffers we are setting
+			constantBuffer.GetAddressOf()); // The array of buffers (or just the one we have)
 	}
 
 	// Initialize ImGui itself & platform/renderer backends
@@ -289,7 +316,15 @@ void Game::ImGuiCreate(float deltaTime)
 			ImGui::TreePop();
 		}
 
-		// Create a second tree node for the purpose of viewing Mesh information
+		// Tree Node for changing the tint and offset of the meshes
+		if (ImGui::TreeNode("Vertex Shaders")) 
+		{
+			ImGui::ColorEdit4("Color Tint", &colorTint.x);
+			ImGui::SliderFloat3("Mesh Offset", &offset.x, -1.0f, 1.0f);
+			ImGui::TreePop();
+		}
+
+		// Create a new tree node for the purpose of viewing Mesh information
 		if (ImGui::TreeNode("Mesh Details")) {
 			// Display the information for each individual mesh
 			unsigned int index = 0;
@@ -347,6 +382,21 @@ void Game::Draw(float deltaTime, float totalTime)
 		Graphics::Context->ClearRenderTargetView(Graphics::BackBufferRTV.Get(),	&backgroundColor.x);
 		Graphics::Context->ClearDepthStencilView(Graphics::DepthBufferDSV.Get(), D3D11_CLEAR_DEPTH, 1.0f, 0);
 	}
+
+	VSExternalData vsData{};
+	vsData.TintColor = colorTint;
+	vsData.Offset = offset;
+
+	// Copy the above struct data directly into GPU memory
+	D3D11_MAPPED_SUBRESOURCE mappedBuffer = {};
+	Graphics::Context->Map(
+		constantBuffer.Get(),
+		0,
+		D3D11_MAP_WRITE_DISCARD,
+		0,
+		&mappedBuffer);
+	memcpy(mappedBuffer.pData, &vsData, sizeof(vsData));
+	Graphics::Context->Unmap(constantBuffer.Get(), 0);
 
 	//// DRAW geometry
 	//// - These steps are generally repeated for EACH object you draw

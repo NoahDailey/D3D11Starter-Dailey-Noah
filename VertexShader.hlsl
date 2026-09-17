@@ -1,3 +1,10 @@
+// Identify the constant buffer of external data
+// on the GPU to the Vertex Shader
+cbuffer ExternalData : register(b0)
+{
+    float4 TintColor; // A change of the color
+    float3 Offset; // A change in position
+}
 
 // Struct representing a single vertex worth of data
 // - This should match the vertex definition in our C++ code
@@ -51,12 +58,12 @@ VertexToPixel main( VertexShaderInput input )
 	// - Each of these components is then automatically divided by the W component, 
 	//   which we're leaving at 1.0 for now (this is more useful when dealing with 
 	//   a perspective projection matrix, which we'll get to in the future).
-	output.screenPosition = float4(input.localPosition, 1.0f);
+	output.screenPosition = float4(input.localPosition + Offset, 1.0f);
 
 	// Pass the color through 
 	// - The values will be interpolated per-pixel by the rasterizer
 	// - We don't need to alter it here, but we do need to send it to the pixel shader
-	output.color = input.color;
+	output.color = input.color * TintColor;
 
 	// Whatever we return will make its way through the pipeline to the
 	// next programmable stage we're using (the pixel shader for now)
