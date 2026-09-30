@@ -26,11 +26,11 @@ public:
 	void SetScale(DirectX::XMFLOAT3 scale);
 
 	// Getter methods
-	DirectX::XMFLOAT3 GetPosition();
-	DirectX::XMFLOAT3 GetPitchYawRoll(); // XMFLOAT4 for quarternions
-	DirectX::XMFLOAT3 GetScale();
-	DirectX::XMFLOAT4X4 GetWorldMatrix();
-	DirectX::XMFLOAT4X4 GetWorldInverseTransposeMatrix();
+	const DirectX::XMFLOAT3 GetPosition();
+	const DirectX::XMFLOAT3 GetPitchYawRoll(); // XMFLOAT4 for quarternions
+	const DirectX::XMFLOAT3 GetScale();
+	const DirectX::XMFLOAT4X4 GetWorldMatrix();
+	const DirectX::XMFLOAT4X4 GetWorldInverseTransposeMatrix();
 
 	// Transformer methods
 	void MoveAbsolute(float x, float y, float z);

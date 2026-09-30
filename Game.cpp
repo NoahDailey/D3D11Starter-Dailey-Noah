@@ -372,9 +372,9 @@ void Game::ImGuiCreate(float deltaTime)
 					XMFLOAT3 tempRotation = gameObjects[i]->GetTransform()->GetPitchYawRoll();
 					XMFLOAT3 tempScale = gameObjects[i]->GetTransform()->GetScale();
 					// Create the proper dials for those values
-					ImGui::DragFloat3("Position", &tempPosition.x);
-					ImGui::DragFloat3("Rotation(Radians)", &tempRotation.x);
-					ImGui::DragFloat3("Scale", &tempScale.x);
+					ImGui::DragFloat3("Position", &tempPosition.x, 0.01f);
+					ImGui::DragFloat3("Rotation(Radians)", &tempRotation.x, 0.01f);
+					ImGui::DragFloat3("Scale", &tempScale.x, 0.01f);
 					// Set the new values
 					gameObjects[i]->GetTransform()->SetPosition(tempPosition);
 					gameObjects[i]->GetTransform()->SetRotation(tempRotation);
