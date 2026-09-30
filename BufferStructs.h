@@ -7,5 +7,5 @@
 struct VSExternalData
 {
 	DirectX::XMFLOAT4		TintColor;  // A change of the color
-	DirectX::XMFLOAT3		Offset;		// A change in position
+	DirectX::XMFLOAT4X4		World;		// A change in transform
 };

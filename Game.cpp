@@ -28,7 +28,7 @@ Game::Game()
 	backgroundColor = { 0.4f, 0.6f, 0.75f, 1.0f };
 	demoVisible = false;
 	menuStyle = 1;
-	colorTint = { 1.0f, 0.0f, 0.0f, 1.0f };
+	colorTint = { 1.0f, 0.3f, 0.3f, 1.0f };
 	offset = { 1.0f, 0.0f, 0.0f };
 
 	// Helper methods for loading shaders, creating some basic
@@ -245,6 +245,24 @@ void Game::CreateGeometry()
 		0, 6, 5 // Bottom Triangle
 	};
 	meshes.push_back(std::make_shared<Mesh>(hexagonVertices, 7, hexagonIndices, 18, "Hexagon"));
+
+	// Create gameEntitites using the available meshes
+	GameEntities triangle = GameEntities(meshes[0]);
+	GameEntities rectangle = GameEntities(meshes[1]);
+	GameEntities hexagon_1 = GameEntities(meshes[2]);
+	GameEntities hexagon_2 = GameEntities(meshes[2]);
+	GameEntities hexagon_3 = GameEntities(meshes[2]);
+
+	// Adjust the position, rotation, and scale of some of the gameObjects
+	rectangle.GetTransform()->SetRotation(0.0f, 0.0f, 45.0f);
+	hexagon_2.GetTransform()->MoveAbsolute(0.0f, -0.5f, 0.0f);
+
+	// push back all of the premade and adjusted gameEntities
+	gameObjects.push_back(std::make_shared<GameEntities>(triangle));
+	gameObjects.push_back(std::make_shared<GameEntities>(rectangle));
+	gameObjects.push_back(std::make_shared<GameEntities>(hexagon_1));
+	gameObjects.push_back(std::make_shared<GameEntities>(hexagon_2));
+	gameObjects.push_back(std::make_shared<GameEntities>(hexagon_3));
 }
 
 // Get the ImGui library all the information that it needs to be created
@@ -340,6 +358,33 @@ void Game::ImGuiCreate(float deltaTime)
 			}
 			ImGui::TreePop();
 		}
+
+		// Create a new tree node for the purpose of viewing Mesh information
+		if (ImGui::TreeNode("Entity Transforms")) {
+			// Display the information for each individual mesh
+			unsigned int index = 0;
+			for (int i = 0; i < gameObjects.size(); i++) {
+				ImGui::PushID(index);
+				std::string entityName = "Entity " + std::to_string(i);
+				if (ImGui::TreeNode(entityName.c_str())) {
+					// Get access to the required information
+					XMFLOAT3 tempPosition = gameObjects[i]->GetTransform()->GetPosition();
+					XMFLOAT3 tempRotation = gameObjects[i]->GetTransform()->GetPitchYawRoll();
+					XMFLOAT3 tempScale = gameObjects[i]->GetTransform()->GetScale();
+					// Create the proper dials for those values
+					ImGui::DragFloat3("Position", &tempPosition.x);
+					ImGui::DragFloat3("Rotation(Radians)", &tempRotation.x);
+					ImGui::DragFloat3("Scale", &tempScale.x);
+					// Set the new values
+					gameObjects[i]->GetTransform()->SetPosition(tempPosition);
+					gameObjects[i]->GetTransform()->SetRotation(tempRotation);
+					gameObjects[i]->GetTransform()->SetScale(tempScale);
+					ImGui::TreePop();
+				}
+				ImGui::PopID();
+			}
+			ImGui::TreePop();
+		}
 	}
 	ImGui::End();
 }
@@ -366,6 +411,12 @@ void Game::Update(float deltaTime, float totalTime)
 	// Example input checking: Quit if the escape key is pressed
 	if (Input::KeyDown(VK_ESCAPE))
 		Window::Quit();
+
+	// Make adjustments to the game objects by updating their values
+	gameObjects[0]->GetTransform()->Rotate(0.0f, 0.0f, deltaTime * 2.0f);
+	gameObjects[2]->GetTransform()->Rotate(0.0f, 0.0f, deltaTime * 3.0f);
+	//gameObjects[4]->GetTransform()->MoveAbsolute(-0.00001f, 0.0f, 0.0f);
+	gameObjects[4]->GetTransform()->SetPosition((float)sin(2 * totalTime) / 4, 0.0f, 0.0f);
 }
 
 
@@ -383,28 +434,25 @@ void Game::Draw(float deltaTime, float totalTime)
 		Graphics::Context->ClearDepthStencilView(Graphics::DepthBufferDSV.Get(), D3D11_CLEAR_DEPTH, 1.0f, 0);
 	}
 
-	VSExternalData vsData{};
-	vsData.TintColor = colorTint;
-	vsData.Offset = offset;
+	for(std::shared_ptr<GameEntities> gameEntity : gameObjects) {
+		// Set the data for the constant buffer
+		VSExternalData vsData{};
+		vsData.TintColor = colorTint;
+		vsData.World = gameEntity->GetTransform()->GetWorldMatrix();
 
-	// Copy the above struct data directly into GPU memory
-	D3D11_MAPPED_SUBRESOURCE mappedBuffer = {};
-	Graphics::Context->Map(
-		constantBuffer.Get(),
-		0,
-		D3D11_MAP_WRITE_DISCARD,
-		0,
-		&mappedBuffer);
-	memcpy(mappedBuffer.pData, &vsData, sizeof(vsData));
-	Graphics::Context->Unmap(constantBuffer.Get(), 0);
-
-	//// DRAW geometry
-	//// - These steps are generally repeated for EACH object you draw
-	//// - Other Direct3D calls will also be necessary to do more complex things
-	{
-		for (std::shared_ptr<Mesh> mesh : meshes) {
-			mesh->Draw();
-		}
+		// Copy the above struct data directly into GPU memory
+		D3D11_MAPPED_SUBRESOURCE mappedBuffer = {};
+		Graphics::Context->Map(
+			constantBuffer.Get(),
+			0,
+			D3D11_MAP_WRITE_DISCARD,
+			0,
+			&mappedBuffer);
+		memcpy(mappedBuffer.pData, &vsData, sizeof(vsData));
+		Graphics::Context->Unmap(constantBuffer.Get(), 0);
+		
+		// Finally draw the item
+		gameEntity->Draw();
 	}
 
 	ImGui::Render(); // Truns this frame's UI into rednerable triangles

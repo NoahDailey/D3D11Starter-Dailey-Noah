@@ -1,5 +1,6 @@
 #pragma once
 #include "Mesh.h"
+#include "GameEntities.h"
 
 #include <d3d11.h>
 #include <wrl/client.h>
@@ -49,5 +50,6 @@ private:
 
 	// Create shared_ptr vector for the mesh shapes
 	std::vector<std::shared_ptr<Mesh>> meshes;
-};
 
+	std::vector<std::shared_ptr<GameEntities>> gameObjects;
+};
