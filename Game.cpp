@@ -415,7 +415,6 @@ void Game::Update(float deltaTime, float totalTime)
 	// Make adjustments to the game objects by updating their values
 	gameObjects[0]->GetTransform()->Rotate(0.0f, 0.0f, deltaTime * 2.0f);
 	gameObjects[2]->GetTransform()->Rotate(0.0f, 0.0f, deltaTime * 3.0f);
-	//gameObjects[4]->GetTransform()->MoveAbsolute(-0.00001f, 0.0f, 0.0f);
 	gameObjects[4]->GetTransform()->SetPosition((float)sin(2 * totalTime) / 4, 0.0f, 0.0f);
 }
 
