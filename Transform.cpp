@@ -37,12 +37,14 @@ void Transform::SetRotation(float pitch, float yaw, float roll)
 	pitchYawRoll.y = yaw;
 	pitchYawRoll.z = roll;
 	dirtyMatrices = true;
+	dirtyVectors = true;
 }
 
 void Transform::SetRotation(DirectX::XMFLOAT3 rotation)
 {
 	pitchYawRoll = rotation;
 	dirtyMatrices = true;
+	dirtyVectors = true;
 }
 
 void Transform::SetScale(float x, float y, float z)
@@ -125,7 +127,7 @@ void Transform::MoveAbsolute(DirectX::XMFLOAT3 offset)
 void Transform::MoveRelative(float x, float y, float z)
 {
 	// Store the input as an XMVECTOR
-	XMVECTOR relInput = { x, y, z };
+	XMVECTOR relInput = { x, y, z, 0 };
 
 	// Create a Quaternion for the current rotation
 	XMVECTOR currentRotation = XMQuaternionRotationRollPitchYawFromVector(XMLoadFloat3(&pitchYawRoll));
@@ -134,9 +136,9 @@ void Transform::MoveRelative(float x, float y, float z)
 	XMVECTOR relOutput = XMVector3Rotate(relInput, currentRotation);
 
 	// Store the new position
-	XMStoreFloat3(&position, relOutput);
+	XMStoreFloat3(&position, XMLoadFloat(&position.x) + relOutput);
 
-	dirtyVectors = true;
+	dirtyMatrices = true;
 }
 
 void Transform::MoveRelative(DirectX::XMFLOAT3 offset)
@@ -153,7 +155,7 @@ void Transform::MoveRelative(DirectX::XMFLOAT3 offset)
 	// Store the new position
 	XMStoreFloat3(&position, relOutput);
 
-	dirtyVectors = true;
+	dirtyMatrices = true;
 }
 
 void Transform::Rotate(float pitch, float yaw, float roll)

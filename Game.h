@@ -1,6 +1,7 @@
 #pragma once
 #include "Mesh.h"
 #include "GameEntities.h"
+#include "Camera.h"
 
 #include <d3d11.h>
 #include <wrl/client.h>
@@ -52,4 +53,7 @@ private:
 	std::vector<std::shared_ptr<Mesh>> meshes;
 
 	std::vector<std::shared_ptr<GameEntities>> gameObjects;
+
+	// Create a Camera object
+	std::shared_ptr<Camera> camera;
 };

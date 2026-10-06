@@ -4,11 +4,12 @@
 #include "Transform.h"
 
 #include "DirectXMath.h"
+#include <memory>
 
 class Camera {
 private:
 	// Transform for movement
-	Transform transform;
+	std::shared_ptr<Transform> transform;
 
 	// View and Projection Matrices for camera range
 	DirectX::XMFLOAT4X4 viewMatrix;
@@ -22,13 +23,14 @@ private:
 	float mouseLookSpeed;
 public:
 	// Construction and Deconstruction
-	Camera(float aspectRatio, DirectX::XMFLOAT3 initialPosition, DirectX::XMFLOAT3 startingOrientation,
-		float fov, float nearClipPlane, float farClipPlane, float movementSpeed, float mouseLookSpeed);
+	Camera(float aspectRatio, DirectX::XMFLOAT3 initialPosition, float fov, 
+		float nearClipPlane, float farClipPlane, float movementSpeed, float mouseLookSpeed);
 	~Camera();
 
 	// Getters
 	DirectX::XMFLOAT4X4 GetViewMatrix();
 	DirectX::XMFLOAT4X4 GetProjectionMatrix();
+	std::shared_ptr<Transform> GetTransform();
 
 	// Update methods
 	void UpdateProjectionMatrix(float aspectRatio);

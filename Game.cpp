@@ -93,6 +93,11 @@ Game::Game()
 	ImGui::StyleColorsDark();
 	//ImGui::StyleColorsLight();
 	//ImGui::StyleColorsClassic();
+
+	// Initialize the Camera
+	XMFLOAT3 initialCameraPosition = XMFLOAT3(0.0f, 0.0f, -5.0f);
+	camera = std::make_shared<Camera>(Window::AspectRatio(), initialCameraPosition,
+		75 * (XM_PI / 180), 0.01f, 100.0f, 5.0f, 5.0f);
 }
 
 
@@ -385,6 +390,18 @@ void Game::ImGuiCreate(float deltaTime)
 			}
 			ImGui::TreePop();
 		}
+
+		// Create a new tree node for the purpose of viewing Camera Information
+		if (ImGui::TreeNode("Cameras")) {
+			// Get access to the required information
+			XMFLOAT3 tempPosition = camera->GetTransform()->GetPosition();
+			XMFLOAT3 tempRotation = camera->GetTransform()->GetPitchYawRoll();
+			ImGui::DragFloat3("Position", &tempPosition.x, 0.01f);
+			ImGui::DragFloat3("Rotation", &tempRotation.x, 0.01f);
+			camera->GetTransform()->SetPosition(tempPosition);
+			camera->GetTransform()->SetRotation(tempRotation);
+			ImGui::TreePop();
+		}
 	}
 	ImGui::End();
 }
@@ -396,7 +413,9 @@ void Game::ImGuiCreate(float deltaTime)
 // --------------------------------------------------------
 void Game::OnResize()
 {
-	
+	// Resize the projection matrix
+	if (camera != nullptr)
+		camera->UpdateProjectionMatrix(Window::AspectRatio());
 }
 
 
@@ -416,6 +435,8 @@ void Game::Update(float deltaTime, float totalTime)
 	gameObjects[0]->GetTransform()->Rotate(0.0f, 0.0f, deltaTime * 2.0f);
 	gameObjects[2]->GetTransform()->Rotate(0.0f, 0.0f, deltaTime * 3.0f);
 	gameObjects[4]->GetTransform()->SetPosition((float)sin(2 * totalTime) / 4, 0.0f, 0.0f);
+
+	camera->Update(deltaTime);
 }
 
 
@@ -438,6 +459,8 @@ void Game::Draw(float deltaTime, float totalTime)
 		VSExternalData vsData{};
 		vsData.TintColor = colorTint;
 		vsData.World = gameEntity->GetTransform()->GetWorldMatrix();
+		vsData.ViewMatrix = camera->GetViewMatrix();
+		vsData.ProjectionMatrix = camera->GetProjectionMatrix();
 
 		// Copy the above struct data directly into GPU memory
 		D3D11_MAPPED_SUBRESOURCE mappedBuffer = {};

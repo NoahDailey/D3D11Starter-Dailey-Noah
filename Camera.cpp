@@ -2,16 +2,11 @@
 
 using namespace DirectX;
 
-Camera::Camera(float aspectRatio, XMFLOAT3 initialPosition, XMFLOAT3 startingOrientation,float fov, float nearClipPlane, float farClipPlane, float movementSpeed, float mouseLookSpeed)
+Camera::Camera(float aspectRatio, XMFLOAT3 initialPosition,float fov, float nearClipPlane, float farClipPlane, float movementSpeed, float mouseLookSpeed)
 {
     // Setup the Cameras Transform
-    transform = Transform();
-    transform.SetPosition(initialPosition);
-    transform.SetRotation(startingOrientation);
-
-    // Setup the View and Projection Matrices
-    UpdateProjectionMatrix(aspectRatio);
-    UpdateViewMatrix();
+    transform = std::make_shared<Transform>();
+    transform->SetPosition(initialPosition);
 
     // Setup customizable values
     fovAngle = fov;
@@ -19,6 +14,10 @@ Camera::Camera(float aspectRatio, XMFLOAT3 initialPosition, XMFLOAT3 startingOri
     this->farClipPlane = farClipPlane;
     this->movementSpeed = movementSpeed;
     this->mouseLookSpeed = mouseLookSpeed;
+
+    // Setup the View and Projection Matrices
+    UpdateProjectionMatrix(aspectRatio);
+    UpdateViewMatrix();
 }
 
 Camera::~Camera()
@@ -35,6 +34,11 @@ DirectX::XMFLOAT4X4 Camera::GetProjectionMatrix()
     return projectionMatrix;
 }
 
+std::shared_ptr<Transform> Camera::GetTransform()
+{
+    return transform;
+}
+
 void Camera::UpdateProjectionMatrix(float aspectRatio)
 {
     XMMATRIX currentProjectionMatrix = XMMatrixPerspectiveFovLH(fovAngle, aspectRatio, nearClipPlane, farClipPlane);
@@ -43,22 +47,25 @@ void Camera::UpdateProjectionMatrix(float aspectRatio)
 
 void Camera::UpdateViewMatrix()
 {
-    XMMATRIX currentViewMatrix = XMMatrixLookToLH(XMLoadFloat3(&transform.GetPosition()), XMLoadFloat3(&transform.GetForward()), XMLoadFloat3(&transform.GetUp()));
+    XMFLOAT3 currentPosition = transform->GetPosition();
+    XMFLOAT3 forwardVector = transform->GetForward();
+    XMFLOAT3 worldUp = { 0, 1, 0 };
+    XMMATRIX currentViewMatrix = XMMatrixLookToLH(XMLoadFloat3(&currentPosition), XMLoadFloat3(&forwardVector), XMLoadFloat3(&worldUp));
     XMStoreFloat4x4(&viewMatrix, currentViewMatrix);
 }
 
 void Camera::Update(float deltaTime)
 {
     // Speed Management
-    float speed = (movementSpeed * deltaTime) * 5;
+    float speed = (movementSpeed * deltaTime);
 
     // Directional movement management
-    if (Input::KeyDown('W')) { transform.MoveRelative(0, 0, +speed); }
-    if (Input::KeyDown('S')) { transform.MoveRelative(0, 0, -speed); }
-    if (Input::KeyDown('A')) { transform.MoveRelative(-speed, 0, 0); }
-    if (Input::KeyDown('D')) { transform.MoveRelative(+speed, 0, 0); }
-    if (Input::KeyDown(VK_SHIFT)) { transform.MoveAbsolute(0, -speed, 0); }
-    if (Input::KeyDown(VK_CONTROL)) { transform.MoveAbsolute(0, +speed, 0); }
+    if (Input::KeyDown('W')) { transform->MoveRelative(0, 0, +speed); }
+    if (Input::KeyDown('S')) { transform->MoveRelative(0, 0, -speed); }
+    if (Input::KeyDown('A')) { transform->MoveRelative(-speed, 0, 0); }
+    if (Input::KeyDown('D')) { transform->MoveRelative(+speed, 0, 0); }
+    if (Input::KeyDown(VK_SHIFT)) { transform->MoveAbsolute(0, -speed, 0); }
+    if (Input::KeyDown(VK_CONTROL)) { transform->MoveAbsolute(0, +speed, 0); }
 
     // Mouse movement management
     if (Input::MouseLeftDown()) 
@@ -67,18 +74,18 @@ void Camera::Update(float deltaTime)
         int cursorMovementX = Input::GetMouseXDelta();
         int cursorMovementY = Input::GetMouseYDelta();
 
-        float dx = cursorMovementX * mouseLookSpeed;
-        float dy = cursorMovementY * mouseLookSpeed;
+        float dx = cursorMovementX * (mouseLookSpeed * deltaTime);
+        float dy = cursorMovementY * (mouseLookSpeed * deltaTime);
 
-        transform.Rotate(dy, dx, 0);
+        transform->Rotate(dy, dx, 0);
 
         // Clamp the values of the new rotation
-        XMFLOAT3 clampingRotation = transform.GetPitchYawRoll();
+        XMFLOAT3 clampingRotation = transform->GetPitchYawRoll();
         float xValue = clampingRotation.x;
         if (xValue > XM_PIDIV2) xValue = XM_PIDIV2;
         else if (xValue < -XM_PIDIV2) xValue = -XM_PIDIV2;
         clampingRotation.x = xValue;
-        transform.SetRotation(clampingRotation);
+        transform->SetRotation(clampingRotation);
     }
 
     // Update the view matrix
