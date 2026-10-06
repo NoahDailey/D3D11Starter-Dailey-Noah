@@ -5,7 +5,7 @@ cbuffer ExternalData : register(b0)
     float4    TintColor;		// A change of the color
     float4x4  World;			// A change in transform
     float4x4  ViewMatrix;		// A camera view matrix
-    float4x4 ProjectionMatrix;	// A camera projection matrix
+    float4x4  ProjectionMatrix;	// A camera projection matrix
 }
 
 // Struct representing a single vertex worth of data

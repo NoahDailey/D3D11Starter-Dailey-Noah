@@ -95,8 +95,7 @@ Game::Game()
 	//ImGui::StyleColorsClassic();
 
 	// Initialize the Camera
-	XMFLOAT3 initialCameraPosition = XMFLOAT3(0.0f, 0.0f, -5.0f);
-	camera = std::make_shared<Camera>(Window::AspectRatio(), initialCameraPosition,
+	camera = std::make_shared<Camera>(Window::AspectRatio(), XMFLOAT3(0.0f, 0.0f, -5.0f),
 		75 * (XM_PI / 180), 0.01f, 100.0f, 5.0f, 5.0f);
 }
 
