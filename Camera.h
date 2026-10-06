@@ -31,6 +31,9 @@ public:
 	DirectX::XMFLOAT4X4 GetViewMatrix();
 	DirectX::XMFLOAT4X4 GetProjectionMatrix();
 	std::shared_ptr<Transform> GetTransform();
+	float GetFov();
+	float GetNearClipPlane();
+	float GetFarClipPlane();
 
 	// Update methods
 	void UpdateProjectionMatrix(float aspectRatio);

@@ -39,6 +39,21 @@ std::shared_ptr<Transform> Camera::GetTransform()
     return transform;
 }
 
+float Camera::GetFov()
+{
+    return fovAngle;
+}
+
+float Camera::GetNearClipPlane()
+{
+    return nearClipPlane;
+}
+
+float Camera::GetFarClipPlane()
+{
+    return farClipPlane;
+}
+
 void Camera::UpdateProjectionMatrix(float aspectRatio)
 {
     XMMATRIX currentProjectionMatrix = XMMatrixPerspectiveFovLH(fovAngle, aspectRatio, nearClipPlane, farClipPlane);
@@ -65,7 +80,7 @@ void Camera::Update(float deltaTime)
     if (Input::KeyDown('A')) { transform->MoveRelative(-speed, 0, 0); }
     if (Input::KeyDown('D')) { transform->MoveRelative(+speed, 0, 0); }
     if (Input::KeyDown(VK_SHIFT)) { transform->MoveAbsolute(0, -speed, 0); }
-    if (Input::KeyDown(VK_CONTROL)) { transform->MoveAbsolute(0, +speed, 0); }
+    if (Input::KeyDown(' ')) { transform->MoveAbsolute(0, +speed, 0); }
 
     // Mouse movement management
     if (Input::MouseLeftDown()) 

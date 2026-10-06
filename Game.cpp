@@ -95,8 +95,11 @@ Game::Game()
 	//ImGui::StyleColorsClassic();
 
 	// Initialize the Camera
-	camera = std::make_shared<Camera>(Window::AspectRatio(), XMFLOAT3(0.0f, 0.0f, -5.0f),
-		75 * (XM_PI / 180), 0.01f, 100.0f, 5.0f, 5.0f);
+	cameras.push_back(std::make_shared<Camera>(Window::AspectRatio(), XMFLOAT3(0.0f, 0.0f, -5.0f),
+		45 * (XM_PI / 180), 0.01f, 100.0f, 5.0f, 5.0f));
+	cameras.push_back(std::make_shared<Camera>(Window::AspectRatio(), XMFLOAT3(-0.5f, 0.0f, -1.0f),
+		90 * (XM_PI / 180), 0.01f, 100.0f, 5.0f, 5.0f));
+	activeCamera = 0;
 }
 
 
@@ -290,8 +293,8 @@ void Game::ImGuiCreate(float deltaTime)
 	// Create a custom ImGui Debug menu
 	ImGui::Begin("Inspector Menu");
 	{
-		// Create a tree node for the debugging information
-		if (ImGui::TreeNode("Debuging")) {
+		// Create a header for the Debuggin options
+		if (ImGui::CollapsingHeader("Debuging")) {
 			// Framerate Tracking
 			// Replace the %f with the next parameter, and format as a float
 			ImGui::Text("Framerate: %f fps", ImGui::GetIO().Framerate);
@@ -335,19 +338,17 @@ void Game::ImGuiCreate(float deltaTime)
 			default:
 				ImGui::StyleColorsDark();
 			}
-			ImGui::TreePop();
 		}
 
-		// Tree Node for changing the tint and offset of the meshes
-		if (ImGui::TreeNode("Vertex Shaders")) 
+		// Collapsing header for changing the tint and offset of the meshes
+		if (ImGui::CollapsingHeader("Vertex Shaders")) 
 		{
 			ImGui::ColorEdit4("Color Tint", &colorTint.x);
 			ImGui::SliderFloat3("Mesh Offset", &offset.x, -1.0f, 1.0f);
-			ImGui::TreePop();
 		}
 
-		// Create a new tree node for the purpose of viewing Mesh information
-		if (ImGui::TreeNode("Mesh Details")) {
+		// Create a collapsing header for the purpose of viewing Mesh information
+		if (ImGui::CollapsingHeader("Mesh Details")) {
 			// Display the information for each individual mesh
 			unsigned int index = 0;
 			for (std::shared_ptr<Mesh> mesh : meshes) {
@@ -360,11 +361,10 @@ void Game::ImGuiCreate(float deltaTime)
 				}
 				ImGui::PopID();
 			}
-			ImGui::TreePop();
 		}
 
-		// Create a new tree node for the purpose of viewing Mesh information
-		if (ImGui::TreeNode("Entity Transforms")) {
+		// Create a collapsing header for the purpose of viewing Mesh information
+		if (ImGui::CollapsingHeader("Entity Transforms")) {
 			// Display the information for each individual mesh
 			unsigned int index = 0;
 			for (int i = 0; i < gameObjects.size(); i++) {
@@ -387,19 +387,24 @@ void Game::ImGuiCreate(float deltaTime)
 				}
 				ImGui::PopID();
 			}
-			ImGui::TreePop();
 		}
 
-		// Create a new tree node for the purpose of viewing Camera Information
-		if (ImGui::TreeNode("Cameras")) {
-			// Get access to the required information
-			XMFLOAT3 tempPosition = camera->GetTransform()->GetPosition();
-			XMFLOAT3 tempRotation = camera->GetTransform()->GetPitchYawRoll();
+		// Create a collapsing header for the purpose of viewing Camera Information
+		if (ImGui::CollapsingHeader("Cameras")) {
+			// Radio Buttons for camera selection
+			ImGui::RadioButton("Camera 1", &activeCamera, 0); ImGui::SameLine();
+			ImGui::RadioButton("Camera 2", &activeCamera, 1);
+			// Add some basic information that can be changed in the debug menu
+			XMFLOAT3 tempPosition = cameras[activeCamera]->GetTransform()->GetPosition();
+			XMFLOAT3 tempRotation = cameras[activeCamera]->GetTransform()->GetPitchYawRoll();
 			ImGui::DragFloat3("Position", &tempPosition.x, 0.01f);
-			ImGui::DragFloat3("Rotation", &tempRotation.x, 0.01f);
-			camera->GetTransform()->SetPosition(tempPosition);
-			camera->GetTransform()->SetRotation(tempRotation);
-			ImGui::TreePop();
+			ImGui::DragFloat3("Rotation(Radians)", &tempRotation.x, 0.01f);
+			cameras[activeCamera]->GetTransform()->SetPosition(tempPosition);
+			cameras[activeCamera]->GetTransform()->SetRotation(tempRotation);
+			// Add some non-changing information to the menu
+			ImGui::Text("FOV: %f radians", cameras[activeCamera]->GetFov());
+			ImGui::Text("Near Clip Plane: %f", cameras[activeCamera]->GetNearClipPlane());
+			ImGui::Text("Far Clip Plane: %f", cameras[activeCamera]->GetFarClipPlane());
 		}
 	}
 	ImGui::End();
@@ -413,8 +418,11 @@ void Game::ImGuiCreate(float deltaTime)
 void Game::OnResize()
 {
 	// Resize the projection matrix
-	if (camera != nullptr)
-		camera->UpdateProjectionMatrix(Window::AspectRatio());
+	for (auto camera : cameras) 
+	{
+		if (camera != nullptr)
+			camera->UpdateProjectionMatrix(Window::AspectRatio());
+	}
 }
 
 
@@ -435,7 +443,7 @@ void Game::Update(float deltaTime, float totalTime)
 	gameObjects[2]->GetTransform()->Rotate(0.0f, 0.0f, deltaTime * 3.0f);
 	gameObjects[4]->GetTransform()->SetPosition((float)sin(2 * totalTime) / 4, 0.0f, 0.0f);
 
-	camera->Update(deltaTime);
+	cameras[activeCamera]->Update(deltaTime);
 }
 
 
@@ -458,8 +466,8 @@ void Game::Draw(float deltaTime, float totalTime)
 		VSExternalData vsData{};
 		vsData.TintColor = colorTint;
 		vsData.World = gameEntity->GetTransform()->GetWorldMatrix();
-		vsData.ViewMatrix = camera->GetViewMatrix();
-		vsData.ProjectionMatrix = camera->GetProjectionMatrix();
+		vsData.ViewMatrix = cameras[activeCamera]->GetViewMatrix();
+		vsData.ProjectionMatrix = cameras[activeCamera]->GetProjectionMatrix();
 
 		// Copy the above struct data directly into GPU memory
 		D3D11_MAPPED_SUBRESOURCE mappedBuffer = {};
