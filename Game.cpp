@@ -28,7 +28,9 @@ Game::Game()
 	backgroundColor = { 0.4f, 0.6f, 0.75f, 1.0f };
 	demoVisible = false;
 	menuStyle = 1;
-	colorTint = { 1.0f, 0.3f, 0.3f, 1.0f };
+	colorTints.push_back({ 1.0f, 0.3f, 0.3f, 1.0f});
+	colorTints.push_back({ 0.3f, 1.0f, 0.3f, 1.0f });
+	colorTints.push_back({ 0.3f, 0.3f, 1.0f, 1.0f });
 	offset = { 1.0f, 0.0f, 0.0f };
 
 	// Helper methods for loading shaders, creating some basic
@@ -160,6 +162,13 @@ void Game::LoadShaders()
 			vertexShader.GetAddressOf());			// The address of the ID3D11VertexShader pointer
 	}
 
+	// Create the materials that we will be using
+	{
+		materials.push_back(std::make_shared<Material>(colorTints[0], vertexShader, pixelShader));
+		materials.push_back(std::make_shared<Material>(colorTints[1], vertexShader, pixelShader));
+		materials.push_back(std::make_shared<Material>(colorTints[2], vertexShader, pixelShader));
+	}
+
 	// Create an input layout 
 	//  - This describes the layout of data sent to a vertex shader
 	//  - In other words, it describes how to interpret data (numbers) in a vertex buffer
@@ -254,11 +263,11 @@ void Game::CreateGeometry()
 	meshes.push_back(std::make_shared<Mesh>(hexagonVertices, 7, hexagonIndices, 18, "Hexagon"));
 
 	// Create gameEntitites using the available meshes
-	GameEntities triangle = GameEntities(meshes[0]);
-	GameEntities rectangle = GameEntities(meshes[1]);
-	GameEntities hexagon_1 = GameEntities(meshes[2]);
-	GameEntities hexagon_2 = GameEntities(meshes[2]);
-	GameEntities hexagon_3 = GameEntities(meshes[2]);
+	GameEntities triangle = GameEntities(meshes[0], materials[0]);
+	GameEntities rectangle = GameEntities(meshes[1], materials[1]);
+	GameEntities hexagon_1 = GameEntities(meshes[2], materials[2]);
+	GameEntities hexagon_2 = GameEntities(meshes[2], materials[2]);
+	GameEntities hexagon_3 = GameEntities(meshes[2], materials[2]);
 
 	// Adjust the position, rotation, and scale of some of the gameObjects
 	rectangle.GetTransform()->SetRotation(0.0f, 0.0f, 45.0f);
@@ -343,7 +352,7 @@ void Game::ImGuiCreate(float deltaTime)
 		// Collapsing header for changing the tint and offset of the meshes
 		if (ImGui::CollapsingHeader("Vertex Shaders")) 
 		{
-			ImGui::ColorEdit4("Color Tint", &colorTint.x);
+			ImGui::ColorEdit4("Color Tint", &colorTints[0].x);
 			ImGui::SliderFloat3("Mesh Offset", &offset.x, -1.0f, 1.0f);
 		}
 
@@ -462,9 +471,12 @@ void Game::Draw(float deltaTime, float totalTime)
 	}
 
 	for(std::shared_ptr<GameEntities> gameEntity : gameObjects) {
+		// Set the vertex shader and pixel shader
+		Graphics::Context->VSSetShader(gameEntity->GetMaterial()->GetVertexShader().Get(), 0, 0);
+		Graphics::Context->PSSetShader(gameEntity->GetMaterial()->GetPixelShader().Get(), 0, 0);
 		// Set the data for the constant buffer
 		VSExternalData vsData{};
-		vsData.TintColor = colorTint;
+		vsData.TintColor = gameEntity->GetMaterial()->GetColorTint();
 		vsData.World = gameEntity->GetTransform()->GetWorldMatrix();
 		vsData.ViewMatrix = cameras[activeCamera]->GetViewMatrix();
 		vsData.ProjectionMatrix = cameras[activeCamera]->GetProjectionMatrix();

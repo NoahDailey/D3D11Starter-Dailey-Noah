@@ -2,6 +2,7 @@
 #include "Mesh.h"
 #include "GameEntities.h"
 #include "Camera.h"
+#include "Material.h"
 
 #include <d3d11.h>
 #include <wrl/client.h>
@@ -46,7 +47,7 @@ private:
 	DirectX::XMFLOAT4 backgroundColor;
 	bool demoVisible;
 	int menuStyle;
-	DirectX::XMFLOAT4 colorTint;
+	std::vector<DirectX::XMFLOAT4> colorTints;
 	DirectX::XMFLOAT3 offset;
 
 	// Create shared_ptr vector for the mesh shapes
@@ -57,4 +58,7 @@ private:
 	// Create a Camera object
 	std::vector<std::shared_ptr<Camera>> cameras;
 	int activeCamera;
+
+	// Create a shared_ptr vector for Materials
+	std::vector<std::shared_ptr<Material>> materials;
 };
