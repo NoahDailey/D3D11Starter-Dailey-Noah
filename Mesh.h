@@ -4,6 +4,10 @@
 #include <d3d11.h>
 #include <wrl/client.h>
 #include <DirectXMath.h>
+#include <fstream>
+#include <vector>
+#include <stdexcept>
+#include <unordered_map>
 
 class Mesh {
 private:
@@ -17,9 +21,13 @@ private:
 	
 	// Char pointer for the name
 	const char* name;
+
+	void CreateVertexBuffer(Vertex* vertices, unsigned int verticesCount);
+	void CreateIndexBuffer(unsigned int* indices, unsigned int indicesCount);
 public:
 	// Constructor/Deconstructor
 	Mesh(Vertex* vertices, unsigned int verticesCount, unsigned int* indices, unsigned int indicesCount, const char* name);
+	Mesh(const char* objFile);
 	~Mesh();
 
 	// Get properties

@@ -97,7 +97,7 @@ Game::Game()
 	//ImGui::StyleColorsClassic();
 
 	// Initialize the Camera
-	cameras.push_back(std::make_shared<Camera>(Window::AspectRatio(), XMFLOAT3(0.0f, 0.0f, -5.0f),
+	cameras.push_back(std::make_shared<Camera>(Window::AspectRatio(), XMFLOAT3(0.0f, 0.0f, -10.0f),
 		45 * (XM_PI / 180), 0.01f, 100.0f, 5.0f, 5.0f));
 	cameras.push_back(std::make_shared<Camera>(Window::AspectRatio(), XMFLOAT3(-0.5f, 0.0f, -1.0f),
 		90 * (XM_PI / 180), 0.01f, 100.0f, 5.0f, 5.0f));
@@ -162,35 +162,33 @@ void Game::LoadShaders()
 			vertexShader.GetAddressOf());			// The address of the ID3D11VertexShader pointer
 	}
 
-	// Create the materials that we will be using
-	{
-		materials.push_back(std::make_shared<Material>(colorTints[0], vertexShader, pixelShader));
-		materials.push_back(std::make_shared<Material>(colorTints[1], vertexShader, pixelShader));
-		materials.push_back(std::make_shared<Material>(colorTints[2], vertexShader, pixelShader));
-	}
-
 	// Create an input layout 
 	//  - This describes the layout of data sent to a vertex shader
 	//  - In other words, it describes how to interpret data (numbers) in a vertex buffer
 	//  - Doing this NOW because it requires a vertex shader's byte code to verify against!
 	//  - Luckily, we already have that loaded (the vertex shader blob above)
 	{
-		D3D11_INPUT_ELEMENT_DESC inputElements[2] = {};
+		D3D11_INPUT_ELEMENT_DESC inputElements[3] = {};
 
 		// Set up the first element - a position, which is 3 float values
 		inputElements[0].Format = DXGI_FORMAT_R32G32B32_FLOAT;				// Most formats are described as color channels; really it just means "Three 32-bit floats"
 		inputElements[0].SemanticName = "POSITION";							// This is "POSITION" - needs to match the semantics in our vertex shader input!
 		inputElements[0].AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT;	// How far into the vertex is this?  Assume it's after the previous element
 
-		// Set up the second element - a color, which is 4 more float values
-		inputElements[1].Format = DXGI_FORMAT_R32G32B32A32_FLOAT;			// 4x 32-bit floats
-		inputElements[1].SemanticName = "COLOR";							// Match our vertex shader input!
+		// Set up the second element - uv values, which is 2 more float values
+		inputElements[1].Format = DXGI_FORMAT_R32G32_FLOAT;					// 2x 32-bit floats
+		inputElements[1].SemanticName = "TEXCOORD";							// Match our vertex shader input!
 		inputElements[1].AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT;	// After the previous element
+
+		// Set up the third element - normal values, which is 3 more float values
+		inputElements[2].Format = DXGI_FORMAT_R32G32B32_FLOAT;				// 3x 32-bit floats
+		inputElements[2].SemanticName = "NORMAL";							// Match our vertex shader input!
+		inputElements[2].AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT;	// After the previous element
 
 		// Create the input layout, verifying our description against actual shader code
 		Graphics::Device->CreateInputLayout(
 			inputElements,							// An array of descriptions
-			2,										// How many elements in that array?
+			3,										// How many elements in that array?
 			vertexShaderBlob->GetBufferPointer(),	// Pointer to the code of a shader that uses this layout
 			vertexShaderBlob->GetBufferSize(),		// Size of the shader code that uses this layout
 			inputLayout.GetAddressOf());			// Address of the resulting ID3D11InputLayout pointer
@@ -203,82 +201,34 @@ void Game::LoadShaders()
 // --------------------------------------------------------
 void Game::CreateGeometry()
 {
-	// Create some temporary variables to represent colors
-	// - Not necessary, just makes things more readable
-	XMFLOAT4 red = XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f);
-	XMFLOAT4 green = XMFLOAT4(0.0f, 1.0f, 0.0f, 1.0f);
-	XMFLOAT4 blue = XMFLOAT4(0.0f, 0.0f, 1.0f, 1.0f);
-	XMFLOAT4 yellow = XMFLOAT4(1.0f, 1.0f, 0.0f, 1.0f);
-	XMFLOAT4 cyan = XMFLOAT4(0.0f, 1.0f, 1.0f, 1.0f);
-	XMFLOAT4 black = XMFLOAT4{ 0.0f, 0.0f, 0.0f, 1.0f };
-	XMFLOAT4 white = XMFLOAT4{ 1.0f, 1.0f, 1.0f, 1.0f };
-
-	// Set up the vertices and indices of the triangle we would like to draw
-	/* Basic Triangle */
-	Vertex triangleVertices[] =
+	// Create the materials that we will be using
 	{
-		{ XMFLOAT3(+0.0f, +0.5f, +0.0f), red },
-		{ XMFLOAT3(+0.5f, -0.5f, +0.0f), blue },
-		{ XMFLOAT3(-0.5f, -0.5f, +0.0f), green }
-	};
-	unsigned int triangleIndices[] = { 0, 1, 2 };
+		materials.push_back(std::make_shared<Material>("Red Tint", colorTints[0], vertexShader, pixelShader));
+		materials.push_back(std::make_shared<Material>("Green Tint", colorTints[1], vertexShader, pixelShader));
+		materials.push_back(std::make_shared<Material>("Blue Tint", colorTints[2], vertexShader, pixelShader));
+	}
 
-	// Create the shared_ptr to the triangle
-	meshes.push_back(std::make_shared<Mesh>(triangleVertices, 3, triangleIndices, 3, "Triangle"));
+	// Create the various meshes that we need
+	meshes.push_back(std::make_shared<Mesh>(FixPath("../../Assets/Meshes/cube.obj").c_str()));
+	meshes.push_back(std::make_shared<Mesh>(FixPath("../../Assets/Meshes/sphere.obj").c_str()));
+	meshes.push_back(std::make_shared<Mesh>(FixPath("../../Assets/Meshes/cylinder.obj").c_str()));
+	meshes.push_back(std::make_shared<Mesh>(FixPath("../../Assets/Meshes/helix.obj").c_str()));
+	meshes.push_back(std::make_shared<Mesh>(FixPath("../../Assets/Meshes/torus.obj").c_str()));
+	meshes.push_back(std::make_shared<Mesh>(FixPath("../../Assets/Meshes/quad.obj").c_str()));
+	meshes.push_back(std::make_shared<Mesh>(FixPath("../../Assets/Meshes/quad_double_sided.obj").c_str()));
 
-	/* Rectangle */
-	Vertex rectVertices[] =
-	{
-		{ XMFLOAT3(-0.3f, +0.5f, +0.0f), yellow },
-		{ XMFLOAT3(-0.3f, +0.3f, +0.0f), yellow },
-		{ XMFLOAT3(-0.5f, +0.3f, +0.0f), cyan },
-		{ XMFLOAT3(-0.5f, +0.5f, +0.0f), cyan }
-	};
-	unsigned int rectIndices[] =
-	{
-		0, 1, 2,
-		0, 2, 3
-	};
-	meshes.push_back(std::make_shared<Mesh>(rectVertices, 4, rectIndices, 6, "Rectangle"));
-
-	/* Hexagon Shape */
-	Vertex hexagonVertices[] = {
-		{ XMFLOAT3(+0.5f, +0.5f, +0.0f), black }, // Center
-		{ XMFLOAT3(+0.45f, +0.6f, +0.0f), white }, // Top-Left
-		{ XMFLOAT3(+0.55f, +0.6f, +0.0f), white }, // Top-Right
-		{ XMFLOAT3(+0.4f, +0.5f, +0.0f), white }, // Left
-		{ XMFLOAT3(+0.6f, +0.5f, +0.0f), white }, // Right
-		{ XMFLOAT3(+0.45f, +0.4f, +0.0f), white }, // Bottom-Left
-		{ XMFLOAT3(+0.55f, +0.4f, +0.0f), white } // Bottom-Right
-	};
-	unsigned int hexagonIndices[] =
-	{
-		0, 1, 2, // Top Triangle
-		0, 3, 1, // Top-Left Triangle
-		0, 2, 4, // Top-Right Triangle
-		0, 5, 3, // Bottom-Left Triangle
-		0, 4, 6, // Bottom-Right Triangle
-		0, 6, 5 // Bottom Triangle
-	};
-	meshes.push_back(std::make_shared<Mesh>(hexagonVertices, 7, hexagonIndices, 18, "Hexagon"));
-
-	// Create gameEntitites using the available meshes
-	GameEntities triangle = GameEntities(meshes[0], materials[0]);
-	GameEntities rectangle = GameEntities(meshes[1], materials[1]);
-	GameEntities hexagon_1 = GameEntities(meshes[2], materials[2]);
-	GameEntities hexagon_2 = GameEntities(meshes[2], materials[2]);
-	GameEntities hexagon_3 = GameEntities(meshes[2], materials[2]);
-
-	// Adjust the position, rotation, and scale of some of the gameObjects
-	rectangle.GetTransform()->SetRotation(0.0f, 0.0f, 45.0f);
-	hexagon_2.GetTransform()->MoveAbsolute(0.0f, -0.5f, 0.0f);
+	//// Create gameEntitites using the available meshes
+	GameEntities cube = GameEntities(meshes[0], materials[0]);
+	GameEntities sphere = GameEntities(meshes[1], materials[1]);
+	GameEntities cylinder = GameEntities(meshes[2], materials[2]);
 
 	// push back all of the premade and adjusted gameEntities
-	gameObjects.push_back(std::make_shared<GameEntities>(triangle));
-	gameObjects.push_back(std::make_shared<GameEntities>(rectangle));
-	gameObjects.push_back(std::make_shared<GameEntities>(hexagon_1));
-	gameObjects.push_back(std::make_shared<GameEntities>(hexagon_2));
-	gameObjects.push_back(std::make_shared<GameEntities>(hexagon_3));
+	gameObjects.push_back(std::make_shared<GameEntities>(cube));
+	gameObjects.push_back(std::make_shared<GameEntities>(sphere));
+	gameObjects.push_back(std::make_shared<GameEntities>(cylinder));
+
+	gameObjects[0]->GetTransform()->MoveAbsolute(-3.0f, 0.0f, 0.0f);
+	gameObjects[2]->GetTransform()->SetPosition(3.0f, 0.0f, 0.0f);
 }
 
 // Get the ImGui library all the information that it needs to be created
@@ -427,7 +377,7 @@ void Game::ImGuiCreate(float deltaTime)
 void Game::OnResize()
 {
 	// Resize the projection matrix
-	for (auto camera : cameras) 
+	for (std::shared_ptr<Camera> camera : cameras) 
 	{
 		if (camera != nullptr)
 			camera->UpdateProjectionMatrix(Window::AspectRatio());
@@ -446,11 +396,6 @@ void Game::Update(float deltaTime, float totalTime)
 	// Example input checking: Quit if the escape key is pressed
 	if (Input::KeyDown(VK_ESCAPE))
 		Window::Quit();
-
-	// Make adjustments to the game objects by updating their values
-	gameObjects[0]->GetTransform()->Rotate(0.0f, 0.0f, deltaTime * 2.0f);
-	gameObjects[2]->GetTransform()->Rotate(0.0f, 0.0f, deltaTime * 3.0f);
-	gameObjects[4]->GetTransform()->SetPosition((float)sin(2 * totalTime) / 4, 0.0f, 0.0f);
 
 	cameras[activeCamera]->Update(deltaTime);
 }

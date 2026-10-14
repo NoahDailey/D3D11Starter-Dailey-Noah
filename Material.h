@@ -6,11 +6,12 @@
 
 class Material {
 private:
+	const char* name;
 	DirectX::XMFLOAT4 colorTint;
 	Microsoft::WRL::ComPtr<ID3D11VertexShader> vertexShader;
 	Microsoft::WRL::ComPtr<ID3D11PixelShader> pixelShader;
 public:
-	Material(DirectX::XMFLOAT4 colorTint, Microsoft::WRL::ComPtr<ID3D11VertexShader> vertexShader,
+	Material(const char* name, DirectX::XMFLOAT4 colorTint, Microsoft::WRL::ComPtr<ID3D11VertexShader> vertexShader,
 		Microsoft::WRL::ComPtr<ID3D11PixelShader> pixelShader);
 	~Material();
 

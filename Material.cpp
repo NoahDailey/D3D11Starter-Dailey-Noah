@@ -1,8 +1,9 @@
 #include "Material.h"
 
-Material::Material(DirectX::XMFLOAT4 colorTint, Microsoft::WRL::ComPtr<ID3D11VertexShader> vertexShader, 
+Material::Material(const char* name, DirectX::XMFLOAT4 colorTint, Microsoft::WRL::ComPtr<ID3D11VertexShader> vertexShader, 
     Microsoft::WRL::ComPtr<ID3D11PixelShader> pixelShader)
 {
+    this->name = name;
     this->colorTint = colorTint;
     this->vertexShader = vertexShader;
     this->pixelShader = pixelShader;
