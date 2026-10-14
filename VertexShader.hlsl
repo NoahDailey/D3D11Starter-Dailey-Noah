@@ -2,7 +2,6 @@
 // on the GPU to the Vertex Shader
 cbuffer ExternalData : register(b0)
 {
-    float4    TintColor;		// A change of the color
     float4x4  World;			// A change in transform
     float4x4  ViewMatrix;		// A camera view matrix
     float4x4  ProjectionMatrix;	// A camera projection matrix
@@ -38,7 +37,8 @@ struct VertexToPixel
 	//  |    |                |
 	//  v    v                v
 	float4 screenPosition	: SV_POSITION;	// XYZW position (System Value Position)
-	float4 color			: COLOR;        // RGBA color
+    float2 uv				: TEXCOORD;		// RG uv
+    float3 normal			: NORMAL;		// RGB normal
 };
 
 // --------------------------------------------------------
@@ -63,11 +63,9 @@ VertexToPixel main( VertexShaderInput input )
 	//   a perspective projection matrix, which we'll get to in the future).
     matrix wvp = mul(ProjectionMatrix, mul(ViewMatrix, World));
     output.screenPosition = mul(wvp, float4(input.localPosition, 1.0f));
-
-	// Pass the color through 
-	// - The values will be interpolated per-pixel by the rasterizer
-	// - We don't need to alter it here, but we do need to send it to the pixel shader
-	output.color = TintColor;
+	
+    output.uv = input.uv;
+    output.normal = input.normal;
 
 	// Whatever we return will make its way through the pipeline to the
 	// next programmable stage we're using (the pixel shader for now)

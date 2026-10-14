@@ -61,28 +61,55 @@ Game::Game()
 		Graphics::Context->PSSetShader(pixelShader.Get(), 0, 0);
 	}
 
-	// Setup my constant buffer
+	// Setup all Constant Buffers
 	{
-		// Calculate the next biggest multiple of 16
-		int size = sizeof(VSExternalData);
-		size = (size + 15) / 16 * 16;
+		// Setup the Vertex Shader Constant Buffer
+		{
+			// Calculate the next biggest multiple of 16
+			int size = sizeof(VSExternalData);
+			size = (size + 15) / 16 * 16;
 
-		D3D11_BUFFER_DESC cbDesc{};
-		cbDesc.Usage = D3D11_USAGE_DYNAMIC;
-		cbDesc.ByteWidth = size;
-		cbDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-		cbDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
-		cbDesc.MiscFlags = 0;
-		cbDesc.StructureByteStride = 0;
+			D3D11_BUFFER_DESC cbDesc{};
+			cbDesc.Usage = D3D11_USAGE_DYNAMIC;
+			cbDesc.ByteWidth = size;
+			cbDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+			cbDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+			cbDesc.MiscFlags = 0;
+			cbDesc.StructureByteStride = 0;
 
-		Graphics::Device->CreateBuffer(&cbDesc, 0, constantBuffer.GetAddressOf());
+			Graphics::Device->CreateBuffer(&cbDesc, 0, VSConstantBuffer.GetAddressOf());
 
-		// Bind the constant buffer
-		// to the proper stage of the rendering pipeline
-		Graphics::Context->VSSetConstantBuffers(
-			0, // Must match cbuffer register in shader!!!!
-			1, // The number of buffers we are setting
-			constantBuffer.GetAddressOf()); // The array of buffers (or just the one we have)
+			// Bind the constant buffer
+			// to the proper stage of the rendering pipeline
+			Graphics::Context->VSSetConstantBuffers(
+				0, // Must match cbuffer register in shader!!!!
+				1, // The number of buffers we are setting
+				VSConstantBuffer.GetAddressOf()); // The array of buffers (or just the one we have)
+		}
+		
+		// Setup the Pixel Shader Constant Buffer
+		{
+			// Calculate the next biggest multiple of 16
+			int size = sizeof(PSExternalData);
+			size = (size + 15) / 16 * 16;
+
+			D3D11_BUFFER_DESC cbDesc{};
+			cbDesc.Usage = D3D11_USAGE_DYNAMIC;
+			cbDesc.ByteWidth = size;
+			cbDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+			cbDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+			cbDesc.MiscFlags = 0;
+			cbDesc.StructureByteStride = 0;
+
+			Graphics::Device->CreateBuffer(&cbDesc, 0, PSConstantBuffer.GetAddressOf());
+
+			// Bind the constant buffer
+			// to the proper stage of the rendering pipeline
+			Graphics::Context->PSSetConstantBuffers(
+				0, // Must match cbuffer register in shader!!!!
+				1, // The number of buffers we are setting
+				PSConstantBuffer.GetAddressOf()); // The array of buffers (or just the one we have)
+		}
 	}
 
 	// Initialize ImGui itself & platform/renderer backends
@@ -419,9 +446,9 @@ void Game::Draw(float deltaTime, float totalTime)
 		// Set the vertex shader and pixel shader
 		Graphics::Context->VSSetShader(gameEntity->GetMaterial()->GetVertexShader().Get(), 0, 0);
 		Graphics::Context->PSSetShader(gameEntity->GetMaterial()->GetPixelShader().Get(), 0, 0);
-		// Set the data for the constant buffer
+
+		// Set the data for the Vertex Shader constant buffer
 		VSExternalData vsData{};
-		vsData.TintColor = gameEntity->GetMaterial()->GetColorTint();
 		vsData.World = gameEntity->GetTransform()->GetWorldMatrix();
 		vsData.ViewMatrix = cameras[activeCamera]->GetViewMatrix();
 		vsData.ProjectionMatrix = cameras[activeCamera]->GetProjectionMatrix();
@@ -429,13 +456,27 @@ void Game::Draw(float deltaTime, float totalTime)
 		// Copy the above struct data directly into GPU memory
 		D3D11_MAPPED_SUBRESOURCE mappedBuffer = {};
 		Graphics::Context->Map(
-			constantBuffer.Get(),
+			VSConstantBuffer.Get(),
 			0,
 			D3D11_MAP_WRITE_DISCARD,
 			0,
 			&mappedBuffer);
 		memcpy(mappedBuffer.pData, &vsData, sizeof(vsData));
-		Graphics::Context->Unmap(constantBuffer.Get(), 0);
+		Graphics::Context->Unmap(VSConstantBuffer.Get(), 0);
+
+		// Set the data for the Pixel Shader constant buffer
+		PSExternalData psData{};
+		psData.ColorTint = gameEntity->GetMaterial()->GetColorTint();
+
+		// Copy the above struct data directly into GPU memory
+		Graphics::Context->Map(
+			PSConstantBuffer.Get(),
+			0,
+			D3D11_MAP_WRITE_DISCARD,
+			0,
+			&mappedBuffer);
+		memcpy(mappedBuffer.pData, &psData, sizeof(psData));
+		Graphics::Context->Unmap(PSConstantBuffer.Get(), 0);
 		
 		// Finally draw the item
 		gameEntity->Draw();

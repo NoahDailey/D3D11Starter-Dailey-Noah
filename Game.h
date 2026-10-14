@@ -41,7 +41,8 @@ private:
 	Microsoft::WRL::ComPtr<ID3D11VertexShader> vertexShader;
 	Microsoft::WRL::ComPtr<ID3D11InputLayout> inputLayout;
 
-	Microsoft::WRL::ComPtr<ID3D11Buffer> constantBuffer;
+	Microsoft::WRL::ComPtr<ID3D11Buffer> VSConstantBuffer;
+	Microsoft::WRL::ComPtr<ID3D11Buffer> PSConstantBuffer;
 
 	// ImGui-related variables
 	DirectX::XMFLOAT4 backgroundColor;
