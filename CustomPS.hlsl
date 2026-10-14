@@ -38,5 +38,8 @@ float4 main(VertexToPixel input) : SV_TARGET
 	// - This color (like most values passing through the rasterizer) is 
 	//   interpolated for each pixel between the corresponding vertices 
 	//   of the triangle we're rendering
-    return float4(input.normal.x * sin(TotalTime), input.uv.y * cos(TotalTime), (input.normal.z + input.uv.x) * sin(TotalTime), 1);
+    return float4((input.normal.x * sin(TotalTime)) * input.screenPosition.x,
+	(input.uv.y * cos(TotalTime)) * input.screenPosition.y,
+	((input.normal.z + input.uv.x) * sin(TotalTime)) * input.screenPosition.z,
+	1);
 }

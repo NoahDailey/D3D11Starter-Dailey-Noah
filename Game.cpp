@@ -98,7 +98,7 @@ Game::Game()
 	ImGui::StyleColorsDark();
 
 	// Initialize the Camera
-	cameras.push_back(std::make_shared<Camera>(Window::AspectRatio(), XMFLOAT3(0.0f, 0.0f, -25.0f),
+	cameras.push_back(std::make_shared<Camera>(Window::AspectRatio(), XMFLOAT3(0.0f, +2.0f, -20.0f),
 		45 * (XM_PI / 180), 0.01f, 100.0f, 5.0f, 5.0f));
 	cameras.push_back(std::make_shared<Camera>(Window::AspectRatio(), XMFLOAT3(-0.5f, 0.0f, -10.0f),
 		90 * (XM_PI / 180), 0.01f, 100.0f, 5.0f, 5.0f));
@@ -208,13 +208,13 @@ void Game::CreateGeometry()
 	meshes.push_back(std::make_shared<Mesh>(FixPath("../../Assets/Meshes/quad_double_sided.obj").c_str()));
 
 	// push back all of the premade and adjusted gameEntities
-	gameObjects.push_back(std::make_shared<GameEntities>("Cube 1", meshes[0], materials[0]));
-	gameObjects.push_back(std::make_shared<GameEntities>("Sphere 1", meshes[1], materials[1]));
-	gameObjects.push_back(std::make_shared<GameEntities>("Cylinder 1", meshes[2], materials[2]));
-	gameObjects.push_back(std::make_shared<GameEntities>("Helix 1", meshes[3], materials[5]));
-	gameObjects.push_back(std::make_shared<GameEntities>("Torus 1", meshes[4], materials[2]));
-	gameObjects.push_back(std::make_shared<GameEntities>("Quad 1", meshes[5], materials[1]));
-	gameObjects.push_back(std::make_shared<GameEntities>("Quad Double Sided 1", meshes[6], materials[0]));
+	gameObjects.push_back(std::make_shared<GameEntities>("Cube", meshes[0], materials[0]));
+	gameObjects.push_back(std::make_shared<GameEntities>("Sphere", meshes[1], materials[1]));
+	gameObjects.push_back(std::make_shared<GameEntities>("Cylinder", meshes[2], materials[2]));
+	gameObjects.push_back(std::make_shared<GameEntities>("Helix", meshes[3], materials[5]));
+	gameObjects.push_back(std::make_shared<GameEntities>("Torus", meshes[4], materials[2]));
+	gameObjects.push_back(std::make_shared<GameEntities>("Quad", meshes[5], materials[1]));
+	gameObjects.push_back(std::make_shared<GameEntities>("Quad Double Sided", meshes[6], materials[0]));
 
 	// Adjust positions
 	gameObjects[0]->GetTransform()->MoveAbsolute(-9.0f, 0.0f, 0.0f);
@@ -225,13 +225,13 @@ void Game::CreateGeometry()
 	gameObjects[6]->GetTransform()->MoveAbsolute(+9.0f, 0.0f, 0.0f);
 
 	// Create UV gameobjects
-	gameObjects.push_back(std::make_shared<GameEntities>("Cube 2", meshes[0], materials[3]));
-	gameObjects.push_back(std::make_shared<GameEntities>("Sphere 2", meshes[1], materials[3]));
-	gameObjects.push_back(std::make_shared<GameEntities>("Cylinder 2", meshes[2], materials[3]));
-	gameObjects.push_back(std::make_shared<GameEntities>("Helix 2", meshes[3], materials[3]));
-	gameObjects.push_back(std::make_shared<GameEntities>("Torus 2", meshes[4], materials[3]));
-	gameObjects.push_back(std::make_shared<GameEntities>("Quad 2", meshes[5], materials[3]));
-	gameObjects.push_back(std::make_shared<GameEntities>("Quad Double Sided 2", meshes[6], materials[3]));
+	gameObjects.push_back(std::make_shared<GameEntities>("UV Cube", meshes[0], materials[3]));
+	gameObjects.push_back(std::make_shared<GameEntities>("UV Sphere", meshes[1], materials[3]));
+	gameObjects.push_back(std::make_shared<GameEntities>("UV Cylinder", meshes[2], materials[3]));
+	gameObjects.push_back(std::make_shared<GameEntities>("UV Helix", meshes[3], materials[3]));
+	gameObjects.push_back(std::make_shared<GameEntities>("UV Torus", meshes[4], materials[3]));
+	gameObjects.push_back(std::make_shared<GameEntities>("UV Quad", meshes[5], materials[3]));
+	gameObjects.push_back(std::make_shared<GameEntities>("UV Quad Double Sided", meshes[6], materials[3]));
 
 	// Adjust positions
 	gameObjects[7]->GetTransform()->MoveAbsolute(-9.0f, +3.0f, 0.0f);
@@ -243,13 +243,13 @@ void Game::CreateGeometry()
 	gameObjects[13]->GetTransform()->MoveAbsolute(+9.0f, +3.0f, 0.0f);
 
 	// Create Normal Value gameobjects
-	gameObjects.push_back(std::make_shared<GameEntities>("Cube 3", meshes[0], materials[4]));
-	gameObjects.push_back(std::make_shared<GameEntities>("Sphere 3", meshes[1], materials[4]));
-	gameObjects.push_back(std::make_shared<GameEntities>("Cylinder 3", meshes[2], materials[4]));
-	gameObjects.push_back(std::make_shared<GameEntities>("Helix 3", meshes[3], materials[4]));
-	gameObjects.push_back(std::make_shared<GameEntities>("Torus 3", meshes[4], materials[4]));
-	gameObjects.push_back(std::make_shared<GameEntities>("Quad 3", meshes[5], materials[4]));
-	gameObjects.push_back(std::make_shared<GameEntities>("Quad Double Sided 3", meshes[6], materials[4]));
+	gameObjects.push_back(std::make_shared<GameEntities>("Normal Cube", meshes[0], materials[4]));
+	gameObjects.push_back(std::make_shared<GameEntities>("Normal Sphere", meshes[1], materials[4]));
+	gameObjects.push_back(std::make_shared<GameEntities>("Normal Cylinder", meshes[2], materials[4]));
+	gameObjects.push_back(std::make_shared<GameEntities>("Normal Helix", meshes[3], materials[4]));
+	gameObjects.push_back(std::make_shared<GameEntities>("Normal Torus", meshes[4], materials[4]));
+	gameObjects.push_back(std::make_shared<GameEntities>("Normal Quad", meshes[5], materials[4]));
+	gameObjects.push_back(std::make_shared<GameEntities>("Normal Quad Double Sided", meshes[6], materials[4]));
 
 	// Adjust positions
 	gameObjects[14]->GetTransform()->MoveAbsolute(-9.0f, +6.0f, 0.0f);
@@ -329,23 +329,24 @@ void Game::ImGuiCreate(float deltaTime)
 			}
 		}
 
-		// Collapsing header for changing the tint and offset of the meshes
-		if (ImGui::CollapsingHeader("Vertex Shaders")) 
-		{
-			ImGui::ColorEdit4("Color Tint", &colorTints[0].x);
-			ImGui::SliderFloat3("Mesh Offset", &offset.x, -1.0f, 1.0f);
-		}
+		//// Collapsing header for changing the tint and offset of the meshes
+		//if (ImGui::CollapsingHeader("Vertex Shaders")) 
+		//{
+		//	ImGui::ColorEdit4("Color Tint", &colorTints[0].x);
+		//	ImGui::SliderFloat3("Mesh Offset", &offset.x, -1.0f, 1.0f);
+		//}
 
 		// Create a collapsing header for the purpose of viewing Mesh information
-		if (ImGui::CollapsingHeader("Mesh Details")) {
+		if (ImGui::CollapsingHeader("3D Mesh Details")) {
 			// Display the information for each individual mesh
 			unsigned int index = 0;
-			for (std::shared_ptr<Mesh> mesh : meshes) {
+			for (std::shared_ptr<GameEntities> entity : gameObjects) {
 				ImGui::PushID(index);
-				if (ImGui::TreeNode(mesh->GetShapeName())) {
-					ImGui::Text("Triangles: %i", (mesh->GetIndexCount() / 3));
-					ImGui::Text("Vertices: %i", mesh->GetVertexCount());
-					ImGui::Text("Indices: %i", mesh->GetIndexCount());
+				std::shared_ptr<Mesh> entityMesh = entity->GetMesh();
+				if (ImGui::TreeNode(entity->GetName())) {
+					ImGui::Text("Triangles: %i", (entityMesh->GetIndexCount() / 3));
+					ImGui::Text("Vertices: %i", entityMesh->GetVertexCount());
+					ImGui::Text("Indices: %i", entityMesh->GetIndexCount());
 					ImGui::TreePop();
 				}
 				ImGui::PopID();
@@ -356,22 +357,21 @@ void Game::ImGuiCreate(float deltaTime)
 		if (ImGui::CollapsingHeader("Entity Transforms")) {
 			// Display the information for each individual mesh
 			unsigned int index = 0;
-			for (int i = 0; i < gameObjects.size(); i++) {
+			for (std::shared_ptr<GameEntities> entity : gameObjects) {
 				ImGui::PushID(index);
-				std::string entityName = "Entity " + std::to_string(i);
-				if (ImGui::TreeNode(entityName.c_str())) {
+				if (ImGui::TreeNode(entity->GetName())) {
 					// Get access to the required information
-					XMFLOAT3 tempPosition = gameObjects[i]->GetTransform()->GetPosition();
-					XMFLOAT3 tempRotation = gameObjects[i]->GetTransform()->GetPitchYawRoll();
-					XMFLOAT3 tempScale = gameObjects[i]->GetTransform()->GetScale();
+					XMFLOAT3 tempPosition = entity->GetTransform()->GetPosition();
+					XMFLOAT3 tempRotation = entity->GetTransform()->GetPitchYawRoll();
+					XMFLOAT3 tempScale = entity->GetTransform()->GetScale();
 					// Create the proper dials for those values
 					ImGui::DragFloat3("Position", &tempPosition.x, 0.01f);
 					ImGui::DragFloat3("Rotation(Radians)", &tempRotation.x, 0.01f);
 					ImGui::DragFloat3("Scale", &tempScale.x, 0.01f);
 					// Set the new values
-					gameObjects[i]->GetTransform()->SetPosition(tempPosition);
-					gameObjects[i]->GetTransform()->SetRotation(tempRotation);
-					gameObjects[i]->GetTransform()->SetScale(tempScale);
+					entity->GetTransform()->SetPosition(tempPosition);
+					entity->GetTransform()->SetRotation(tempRotation);
+					entity->GetTransform()->SetScale(tempScale);
 					ImGui::TreePop();
 				}
 				ImGui::PopID();
@@ -438,6 +438,15 @@ void Game::Update(float deltaTime, float totalTime)
 	// Example input checking: Quit if the escape key is pressed
 	if (Input::KeyDown(VK_ESCAPE))
 		Window::Quit();
+
+	for (std::shared_ptr<GameEntities> entity : gameObjects) {
+		entity->GetTransform()->Rotate(0.0f, deltaTime, 0.0f);
+	}
+
+	float scaleValue = (float)sin(totalTime) * 0.25f + 1.0f;
+	gameObjects[0]->GetTransform()->SetScale(scaleValue, scaleValue, scaleValue);
+	gameObjects[7]->GetTransform()->SetScale(scaleValue, scaleValue, scaleValue);
+	gameObjects[14]->GetTransform()->SetScale(scaleValue, scaleValue, scaleValue);
 
 	cameras[activeCamera]->Update(deltaTime);
 }
