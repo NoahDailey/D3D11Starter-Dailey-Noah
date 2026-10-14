@@ -50,58 +50,52 @@ Game::Game()
 	Graphics::Context->IASetInputLayout(inputLayout.Get());
 
 	// Setup all Constant Buffers
-	{
-		// Calculate the next biggest multiple of 16
-		int size = sizeof(VSExternalData);
-		size = (size + 15) / 16 * 16;
+	// Calculate the next biggest multiple of 16
+	int size = sizeof(VSExternalData);
+	size = (size + 15) / 16 * 16;
 
-		D3D11_BUFFER_DESC cbDesc{};
-		cbDesc.Usage = D3D11_USAGE_DYNAMIC;
-		cbDesc.ByteWidth = size;
-		cbDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-		cbDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
-		cbDesc.MiscFlags = 0;
-		cbDesc.StructureByteStride = 0;
+	D3D11_BUFFER_DESC vsCBDesc{};
+	vsCBDesc.Usage = D3D11_USAGE_DYNAMIC;
+	vsCBDesc.ByteWidth = size;
+	vsCBDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+	vsCBDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+	vsCBDesc.MiscFlags = 0;
+	vsCBDesc.StructureByteStride = 0;
 
-		Graphics::Device->CreateBuffer(&cbDesc, 0, VSConstantBuffer.GetAddressOf());
-		// Bind the constant buffer
-		// to the proper stage of the rendering pipeline
-		Graphics::Context->VSSetConstantBuffers(
-			0, // Must match cbuffer register in shader!!!!
-			1, // The number of buffers we are setting
-			VSConstantBuffer.GetAddressOf()); // The array of buffers (or just the one we have)
+	Graphics::Device->CreateBuffer(&vsCBDesc, 0, VSConstantBuffer.GetAddressOf());
+	// Bind the constant buffer
+	// to the proper stage of the rendering pipeline
+	Graphics::Context->VSSetConstantBuffers(
+		0, // Must match cbuffer register in shader!!!!
+		1, // The number of buffers we are setting
+		VSConstantBuffer.GetAddressOf()); // The array of buffers (or just the one we have)
 		
-		size = sizeof(PSExternalData);
-		size = (size + 15) / 16 * 16;
+	size = sizeof(PSExternalData);
+	size = (size + 15) / 16 * 16;
 
-		D3D11_BUFFER_DESC cbDesc{};
-		cbDesc.Usage = D3D11_USAGE_DYNAMIC;
-		cbDesc.ByteWidth = size;
-		cbDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-		cbDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
-		cbDesc.MiscFlags = 0;
-		cbDesc.StructureByteStride = 0;
+	D3D11_BUFFER_DESC psCBDesc{};
+	psCBDesc.Usage = D3D11_USAGE_DYNAMIC;
+	psCBDesc.ByteWidth = size;
+	psCBDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+	psCBDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+	psCBDesc.MiscFlags = 0;
+	psCBDesc.StructureByteStride = 0;
 
-		Graphics::Device->CreateBuffer(&cbDesc, 0, PSConstantBuffer.GetAddressOf());
+	Graphics::Device->CreateBuffer(&psCBDesc, 0, PSConstantBuffer.GetAddressOf());
 
-		// Bind the constant buffer
-		// to the proper stage of the rendering pipeline
-		Graphics::Context->PSSetConstantBuffers(
-			0, // Must match cbuffer register in shader!!!!
-			1, // The number of buffers we are setting
-			PSConstantBuffer.GetAddressOf()); // The array of buffers (or just the one we have)
-	}
+	// Bind the constant buffer
+	// to the proper stage of the rendering pipeline
+	Graphics::Context->PSSetConstantBuffers(
+		0, // Must match cbuffer register in shader!!!!
+		1, // The number of buffers we are setting
+		PSConstantBuffer.GetAddressOf()); // The array of buffers (or just the one we have)
 
 	// Initialize ImGui itself & platform/renderer backends
 	IMGUI_CHECKVERSION();
 	ImGui::CreateContext();
 	ImGui_ImplWin32_Init(Window::Handle());
 	ImGui_ImplDX11_Init(Graphics::Device.Get(), Graphics::Context.Get());
-
-	// Pick a style (uncomment one of these 3)
 	ImGui::StyleColorsDark();
-	//ImGui::StyleColorsLight();
-	//ImGui::StyleColorsClassic();
 
 	// Initialize the Camera
 	cameras.push_back(std::make_shared<Camera>(Window::AspectRatio(), XMFLOAT3(0.0f, 0.0f, -25.0f),
@@ -110,7 +104,6 @@ Game::Game()
 		90 * (XM_PI / 180), 0.01f, 100.0f, 5.0f, 5.0f));
 	activeCamera = 0;
 }
-
 
 // --------------------------------------------------------
 // Clean up memory or objects created by this class
@@ -125,7 +118,6 @@ Game::~Game()
 	ImGui_ImplWin32_Shutdown();
 	ImGui::DestroyContext();
 }
-
 
 // --------------------------------------------------------
 // Loads shaders from compiled shader object (.cso) files
@@ -157,72 +149,41 @@ void Game::LoadShaders()
 		vertexShader.GetAddressOf());			// The address of the ID3D11VertexShader pointer
 
 	// Load the Pixel Shaders via a helper method to make it easier
-	ID3DBlob* pixelShaderBlob;
-	D3DReadFileToBlob(FixPath(L"PixelShader.cso").c_str(), &pixelShaderBlob);
-	ID3DBlob* pixelShaderUVBlob;
-	D3DReadFileToBlob(FixPath(L"DebugUVsPS.cso").c_str(), &pixelShaderUVBlob);
-	ID3DBlob* pixelShaderNormalBlob;
-	D3DReadFileToBlob(FixPath(L"DebugNormalsPS.cso").c_str(), &pixelShaderNormalBlob);
-	ID3DBlob* pixelShaderCustomBlob;
-	D3DReadFileToBlob(FixPath(L"CustomPS.cso").c_str(), &pixelShaderCustomBlob);
-
-	Graphics::Device->CreatePixelShader(
-		pixelShaderBlob->GetBufferPointer(),	// Pointer to blob's contents
-		pixelShaderBlob->GetBufferSize(),		// How big is that data?
-		0,										// No classes in this shader
-		pixelShader.GetAddressOf());			// Address of the ID3D11PixelShader pointer
-
-	Graphics::Device->CreatePixelShader(
-		pixelShaderUVBlob->GetBufferPointer(),	// Pointer to blob's contents
-		pixelShaderUVBlob->GetBufferSize(),		// How big is that data?
-		0,										// No classes in this shader
-		pixelShaderUV.GetAddressOf());			// Address of the ID3D11PixelShader pointer
-
-	Graphics::Device->CreatePixelShader(
-		pixelShaderNormalBlob->GetBufferPointer(),	// Pointer to blob's contents
-		pixelShaderNormalBlob->GetBufferSize(),		// How big is that data?
-		0,										// No classes in this shader
-		pixelShaderNormal.GetAddressOf());			// Address of the ID3D11PixelShader pointer
-
-	Graphics::Device->CreatePixelShader(
-		pixelShaderCustomBlob->GetBufferPointer(),	// Pointer to blob's contents
-		pixelShaderCustomBlob->GetBufferSize(),		// How big is that data?
-		0,										// No classes in this shader
-		pixelShaderCustom.GetAddressOf());			// Address of the ID3D11PixelShader pointer
+	pixelShader = LoadPixelShader(FixPath(L"PixelShader.cso").c_str());
+	pixelShaderUV = LoadPixelShader(FixPath(L"DebugUVsPS.cso").c_str());
+	pixelShaderNormal = LoadPixelShader(FixPath(L"DebugNormalsPS.cso").c_str());
+	pixelShaderCustom = LoadPixelShader(FixPath(L"CustomPS.cso").c_str());
 
 	// Create an input layout 
 	//  - This describes the layout of data sent to a vertex shader
 	//  - In other words, it describes how to interpret data (numbers) in a vertex buffer
 	//  - Doing this NOW because it requires a vertex shader's byte code to verify against!
 	//  - Luckily, we already have that loaded (the vertex shader blob above)
-	{
-		D3D11_INPUT_ELEMENT_DESC inputElements[3] = {};
+	D3D11_INPUT_ELEMENT_DESC inputElements[3] = {};
 
-		// Set up the first element - a position, which is 3 float values
-		inputElements[0].Format = DXGI_FORMAT_R32G32B32_FLOAT;				// Most formats are described as color channels; really it just means "Three 32-bit floats"
-		inputElements[0].SemanticName = "POSITION";							// This is "POSITION" - needs to match the semantics in our vertex shader input!
-		inputElements[0].AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT;	// How far into the vertex is this?  Assume it's after the previous element
+	// Set up the first element - a position, which is 3 float values
+	inputElements[0].Format = DXGI_FORMAT_R32G32B32_FLOAT;				// Most formats are described as color channels; really it just means "Three 32-bit floats"
+	inputElements[0].SemanticName = "POSITION";							// This is "POSITION" - needs to match the semantics in our vertex shader input!
+	inputElements[0].AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT;	// How far into the vertex is this?  Assume it's after the previous element
 
-		// Set up the second element - uv values, which is 2 more float values
-		inputElements[1].Format = DXGI_FORMAT_R32G32_FLOAT;					// 2x 32-bit floats
-		inputElements[1].SemanticName = "TEXCOORD";							// Match our vertex shader input!
-		inputElements[1].AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT;	// After the previous element
+	// Set up the second element - uv values, which is 2 more float values
+	inputElements[1].Format = DXGI_FORMAT_R32G32_FLOAT;					// 2x 32-bit floats
+	inputElements[1].SemanticName = "TEXCOORD";							// Match our vertex shader input!
+	inputElements[1].AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT;	// After the previous element
 
-		// Set up the third element - normal values, which is 3 more float values
-		inputElements[2].Format = DXGI_FORMAT_R32G32B32_FLOAT;				// 3x 32-bit floats
-		inputElements[2].SemanticName = "NORMAL";							// Match our vertex shader input!
-		inputElements[2].AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT;	// After the previous element
+	// Set up the third element - normal values, which is 3 more float values
+	inputElements[2].Format = DXGI_FORMAT_R32G32B32_FLOAT;				// 3x 32-bit floats
+	inputElements[2].SemanticName = "NORMAL";							// Match our vertex shader input!
+	inputElements[2].AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT;	// After the previous element
 
-		// Create the input layout, verifying our description against actual shader code
-		Graphics::Device->CreateInputLayout(
-			inputElements,							// An array of descriptions
-			3,										// How many elements in that array?
-			vertexShaderBlob->GetBufferPointer(),	// Pointer to the code of a shader that uses this layout
-			vertexShaderBlob->GetBufferSize(),		// Size of the shader code that uses this layout
-			inputLayout.GetAddressOf());			// Address of the resulting ID3D11InputLayout pointer
-	}
+	// Create the input layout, verifying our description against actual shader code
+	Graphics::Device->CreateInputLayout(
+		inputElements,							// An array of descriptions
+		3,										// How many elements in that array?
+		vertexShaderBlob->GetBufferPointer(),	// Pointer to the code of a shader that uses this layout
+		vertexShaderBlob->GetBufferSize(),		// Size of the shader code that uses this layout
+		inputLayout.GetAddressOf());			// Address of the resulting ID3D11InputLayout pointer
 }
-
 
 // --------------------------------------------------------
 // Creates the geometry we're going to draw
@@ -438,6 +399,19 @@ void Game::ImGuiCreate(float deltaTime)
 	ImGui::End();
 }
 
+Microsoft::WRL::ComPtr<ID3D11PixelShader> Game::LoadPixelShader(const wchar_t* filePath)
+{
+	ID3DBlob* tempShaderBlob;
+	D3DReadFileToBlob(filePath, &tempShaderBlob);
+	Microsoft::WRL::ComPtr<ID3D11PixelShader> tempShader;
+	Graphics::Device->CreatePixelShader(
+		tempShaderBlob->GetBufferPointer(),	// Pointer to blob's contents
+		tempShaderBlob->GetBufferSize(),	// How big is that data?
+		0,									// No classes in this shader
+		tempShader.GetAddressOf());			// Address of the ID3D11PixelShader pointer
+
+	return tempShader;
+}
 
 // --------------------------------------------------------
 // Handle resizing to match the new window size
@@ -452,7 +426,6 @@ void Game::OnResize()
 			camera->UpdateProjectionMatrix(Window::AspectRatio());
 	}
 }
-
 
 // --------------------------------------------------------
 // Update your game here - user input, move objects, AI, etc.
@@ -469,7 +442,6 @@ void Game::Update(float deltaTime, float totalTime)
 	cameras[activeCamera]->Update(deltaTime);
 }
 
-
 // --------------------------------------------------------
 // Clear the screen, redraw everything, present to the user
 // --------------------------------------------------------
@@ -478,11 +450,9 @@ void Game::Draw(float deltaTime, float totalTime)
 	// Frame START
 	// - These things should happen ONCE PER FRAME
 	// - At the beginning of Game::Draw() before drawing *anything*
-	{
-		// Clear the back buffer (erase what's on screen) and depth buffer
-		Graphics::Context->ClearRenderTargetView(Graphics::BackBufferRTV.Get(),	&backgroundColor.x);
-		Graphics::Context->ClearDepthStencilView(Graphics::DepthBufferDSV.Get(), D3D11_CLEAR_DEPTH, 1.0f, 0);
-	}
+	// Clear the back buffer (erase what's on screen) and depth buffer
+	Graphics::Context->ClearRenderTargetView(Graphics::BackBufferRTV.Get(),	&backgroundColor.x);
+	Graphics::Context->ClearDepthStencilView(Graphics::DepthBufferDSV.Get(), D3D11_CLEAR_DEPTH, 1.0f, 0);
 
 	for(std::shared_ptr<GameEntities> gameEntity : gameObjects) {
 		// Set the vertex shader and pixel shader
@@ -525,23 +495,21 @@ void Game::Draw(float deltaTime, float totalTime)
 		gameEntity->Draw();
 	}
 
-	ImGui::Render(); // Truns this frame's UI into rednerable triangles
-	ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData()); // Draws it to the screen
-
 	// Frame END
 	// - These should happen exactly ONCE PER FRAME
 	// - At the very end of the frame (after drawing *everything*)
-	{
-		// Present at the end of the frame
-		bool vsync = Graphics::VsyncState();
-		Graphics::SwapChain->Present(
-			vsync ? 1 : 0,
-			vsync ? 0 : DXGI_PRESENT_ALLOW_TEARING);
+	ImGui::Render(); // Truns this frame's UI into rednerable triangles
+	ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData()); // Draws it to the screen
 
-		// Re-bind back buffer and depth buffer after presenting
-		Graphics::Context->OMSetRenderTargets(
-			1,
-			Graphics::BackBufferRTV.GetAddressOf(),
-			Graphics::DepthBufferDSV.Get());
-	}
+	// Present at the end of the frame
+	bool vsync = Graphics::VsyncState();
+	Graphics::SwapChain->Present(
+		vsync ? 1 : 0,
+		vsync ? 0 : DXGI_PRESENT_ALLOW_TEARING);
+
+	// Re-bind back buffer and depth buffer after presenting
+	Graphics::Context->OMSetRenderTargets(
+		1,
+		Graphics::BackBufferRTV.GetAddressOf(),
+		Graphics::DepthBufferDSV.Get());
 }
