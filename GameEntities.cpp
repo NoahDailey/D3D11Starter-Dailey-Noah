@@ -1,10 +1,11 @@
 #include "GameEntities.h"
 
-GameEntities::GameEntities(std::shared_ptr<Mesh> mesh, std::shared_ptr<Material> material)
+GameEntities::GameEntities(const char* name, std::shared_ptr<Mesh> mesh, std::shared_ptr<Material> material)
 {
 	transform = std::make_shared<Transform>();
 	this->mesh = mesh;
 	this->material = material;
+	this->name = name;
 }
 
 GameEntities::~GameEntities()
@@ -24,6 +25,11 @@ std::shared_ptr<Mesh> GameEntities::GetMesh()
 std::shared_ptr<Material> GameEntities::GetMaterial()
 {
 	return material;
+}
+
+const char* GameEntities::GetName()
+{
+	return name;
 }
 
 void GameEntities::SetMaterial(std::shared_ptr<Material> material)

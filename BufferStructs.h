@@ -19,4 +19,5 @@ struct VSExternalData
 struct PSExternalData
 {
 	DirectX::XMFLOAT4		ColorTint;			// A tint color of a pixel
+	float					TotalTime;			// The total amount of time that has passed
 };
