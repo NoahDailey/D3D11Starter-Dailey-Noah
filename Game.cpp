@@ -14,6 +14,7 @@
 // Needed for a helper function to load pre-compiled shader files
 #pragma comment(lib, "d3dcompiler.lib")
 #include <d3dcompiler.h>
+#include <WICTextureLoader.h>
 
 // For the DirectX Math library
 using namespace DirectX;
@@ -168,6 +169,15 @@ void Game::LoadShaders()
 // --------------------------------------------------------
 void Game::CreateGeometry()
 {
+	// Try to load in a texture
+	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> srv;
+	CreateWICTextureFromFile(
+		Graphics::Device.Get(),
+		Graphics::Context.Get(),
+		FixPath(L"../../Assets/Images/wood_floor.png").c_str(),
+		0,
+		srv.GetAddressOf());
+
 	// Create the materials that we will be using
 	materials.push_back(std::make_shared<Material>("Red Tint", colorTints[0], vertexShader, pixelShader));
 	materials.push_back(std::make_shared<Material>("Green Tint", colorTints[1], vertexShader, pixelShader));
