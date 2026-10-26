@@ -50,6 +50,25 @@ Game::Game()
 	Graphics::Context->IASetInputLayout(inputLayout.Get());
 
 	// Setup all Constant Buffers
+	// Create the Ring Constant Buffer for easier use 
+	// Grab the Direct3D 11.1 version of the context for later
+	Graphics::Context->QueryInterface<ID3D11DeviceContext1>(Context1.GetAddressOf());
+	cbHeapOffsetInBytes = 0;
+	cbHeapSizeInBytes = 1000 * 256; // More than enough for now
+	// Ensure 256-byte alignment in the event the above calculation changes!
+	cbHeapSizeInBytes = (cbHeapSizeInBytes + 255) / 256 * 256;
+
+	// Create the actual ring buffer
+	D3D11_BUFFER_DESC cbHeapDesc{};
+	cbHeapDesc.Usage = D3D11_USAGE_DYNAMIC;
+	cbHeapDesc.ByteWidth = cbHeapSizeInBytes;
+	cbHeapDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+	cbHeapDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+	cbHeapDesc.MiscFlags = 0;
+	cbHeapDesc.StructureByteStride = 0;
+
+	Graphics::Device->CreateBuffer(&cbHeapDesc, 0, ConstantBufferHeap.GetAddressOf());
+	
 	// Calculate the next biggest multiple of 16
 	int size = sizeof(VSExternalData);
 	size = (size + 15) / 16 * 16;
@@ -411,6 +430,34 @@ Microsoft::WRL::ComPtr<ID3D11PixelShader> Game::LoadPixelShader(const wchar_t* f
 		tempShader.GetAddressOf());			// Address of the ID3D11PixelShader pointer
 
 	return tempShader;
+}
+
+void Game::FillAndBindNextConstantBuffer(void* data, unsigned int dataSizeInBytes, D3D11_SHADER_TYPE_DESC shaderType, unsigned int registerSlot)
+{
+	// How much space will we actually need? Each chunk must be
+	// a multiple of 256 bytes.
+	unsigned int reservationSize = (dataSizeInBytes + 255) / 256 * 256;
+
+	// Does this fit in the remaining space? If not, loop back to
+	// the beginning of the ring buffer.
+	if (cbHeapOffsetInBytes + reservationSize >= cbHeapSizeInBytes)
+		cbHeapOffsetInBytes = 0;
+
+	D3D11_MAPPED_SUBRESOURCE map{};
+	Graphics::Context->Map(
+		ConstantBufferHeap.Get(),
+		0,
+		D3D11_MAP_WRITE_NO_OVERWRITE,
+		0,
+		&map);
+
+	// Write into the proper portion of the buffer
+	void* uploadAddress = reinterpret_cast<void*>((UINT64)map.pData + cbHeapOffsetInBytes);
+	memcpy(uploadAddress, data, dataSizeInBytes);
+
+	Graphics::Context->Unmap(ConstantBufferHeap.Get(), 0);
+
+	/* FINISH METHOD HERE!!! PAGE 16 OF THE READING!!! */
 }
 
 // --------------------------------------------------------

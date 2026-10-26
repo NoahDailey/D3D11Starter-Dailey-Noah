@@ -5,6 +5,7 @@
 #include "Material.h"
 
 #include <d3d11.h>
+#include <d3d11shadertracing.h>
 #include <wrl/client.h>
 #include <DirectXMath.h>
 #include <memory>
@@ -31,6 +32,7 @@ private:
 	void CreateGeometry();
 	void ImGuiCreate(float deltaTime);
 	Microsoft::WRL::ComPtr<ID3D11PixelShader> LoadPixelShader(const wchar_t* filePath);
+	void FillAndBindNextConstantBuffer(void* data, unsigned int dataSizeInBytes, D3D11_SHADER_TYPE_DESC shaderType, unsigned int registerSlot);
 
 	// Note the usage of ComPtr below
 	//  - This is a smart pointer for objects that abide by the
@@ -66,4 +68,13 @@ private:
 
 	// Create a shared_ptr vector for Materials
 	std::vector<std::shared_ptr<Material>> materials;
+
+	// The D3D11.1 version of the Context object
+	Microsoft::WRL::ComPtr<ID3D11DeviceContext1> Context1;
+	// The one and only very large constant buffer (our GPU memory "heap")
+	Microsoft::WRL::ComPtr<ID3D11Buffer> ConstantBufferHeap;
+	// Size of the constant buffer heap (measured in bytes)
+	unsigned int cbHeapSizeInBytes;
+	// Position of the next unused portion of the heap
+	unsigned int cbHeapOffsetInBytes;
 };
