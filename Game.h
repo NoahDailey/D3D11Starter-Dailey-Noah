@@ -32,7 +32,7 @@ private:
 	void CreateGeometry();
 	void ImGuiCreate(float deltaTime);
 	Microsoft::WRL::ComPtr<ID3D11PixelShader> LoadPixelShader(const wchar_t* filePath);
-	void FillAndBindNextConstantBuffer(void* data, unsigned int dataSizeInBytes, D3D11_SHADER_TYPE_DESC shaderType, unsigned int registerSlot);
+	void FillAndBindNextConstantBuffer(void* data, unsigned int dataSizeInBytes, D3D11_SHADER_TYPE shaderType, unsigned int registerSlot);
 
 	// Note the usage of ComPtr below
 	//  - This is a smart pointer for objects that abide by the
