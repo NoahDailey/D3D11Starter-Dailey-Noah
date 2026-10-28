@@ -29,16 +29,16 @@ Game::Game()
 	backgroundColor = { 0.4f, 0.6f, 0.75f, 1.0f };
 	demoVisible = false;
 	menuStyle = 1;
-	colorTints.push_back({ 1.0f, 0.75f, 0.13f, 1.0f});
-	colorTints.push_back({ 0.45f, 1.0f, 0.26f, 1.0f });
-	colorTints.push_back({ 0.32f, 0.81f, 1.0f, 1.0f });
+	colorTints.push_back({ 1.0f,1.0f,1.0f,1.0f });
+	colorTints.push_back({ 1.0f, 0.0f, 0.0f, 1.0f});
+	colorTints.push_back({ 0.0f, 1.0f, 0.0f, 1.0f });
+	colorTints.push_back({ 0.0f, 0.0f, 1.0f, 1.0f });
 	offset = { 1.0f, 0.0f, 0.0f };
 
 	// Helper methods for loading shaders, creating some basic
 	// geometry to draw and some simple camera matrices.
 	//  - You'll be expanding and/or replacing these later
-	LoadShaders();
-	CreateGeometry();
+	LoadShadersAndCreateGeometry();
 	
 	// Tell the input assembler (IA) stage of the pipeline what kind of
 	// geometric primitives (points, lines or triangles) we want to draw.  
@@ -99,154 +99,197 @@ Game::~Game()
 }
 
 // --------------------------------------------------------
-// Loads shaders from compiled shader object (.cso) files
+// // Loads shaders from compiled shader object (.cso) files
 // and also created the Input Layout that describes our 
 // vertex data to the rendering pipeline. 
 // - Input Layout creation is done here because it must 
 //    be verified against vertex shader byte code
 // - We'll have that byte code already loaded below
+// 
+// Creates the geometry we're going to draw
 // --------------------------------------------------------
-void Game::LoadShaders()
-{
-	// BLOBs (or Binary Large OBjects) for reading raw data from external files
+void Game::LoadShadersAndCreateGeometry()
+{	
+	// Load Shaders
+	{
+		// BLOBs (or Binary Large OBjects) for reading raw data from external files
 	// - This is a simplified way of handling big chunks of external data
 	// - Literally just a big array of bytes read from a file
 	// Load the only Vertex Shader
-	ID3DBlob* vertexShaderBlob;
+		ID3DBlob* vertexShaderBlob;
 
-	// Read our compiled shader code files into blobs
-	// - Essentially just "open the file and plop its contents here"
-	// - Uses the custom FixPath() helper from Helpers.h to ensure relative paths
-	// - Note the "L" before the string - this tells the compiler the string uses wide characters
-	D3DReadFileToBlob(FixPath(L"VertexShader.cso").c_str(), &vertexShaderBlob);
+		// Read our compiled shader code files into blobs
+		// - Essentially just "open the file and plop its contents here"
+		// - Uses the custom FixPath() helper from Helpers.h to ensure relative paths
+		// - Note the "L" before the string - this tells the compiler the string uses wide characters
+		D3DReadFileToBlob(FixPath(L"VertexShader.cso").c_str(), &vertexShaderBlob);
 
-	// Create the actual Direct3D shaders on the GPU
-	Graphics::Device->CreateVertexShader(
-		vertexShaderBlob->GetBufferPointer(),	// Get a pointer to the blob's contents
-		vertexShaderBlob->GetBufferSize(),		// How big is that data?
-		0,										// No classes in this shader
-		vertexShader.GetAddressOf());			// The address of the ID3D11VertexShader pointer
+		// Create the actual Direct3D shaders on the GPU
+		Graphics::Device->CreateVertexShader(
+			vertexShaderBlob->GetBufferPointer(),	// Get a pointer to the blob's contents
+			vertexShaderBlob->GetBufferSize(),		// How big is that data?
+			0,										// No classes in this shader
+			vertexShader.GetAddressOf());			// The address of the ID3D11VertexShader pointer
 
-	// Load the Pixel Shaders via a helper method to make it easier
-	pixelShader = LoadPixelShader(FixPath(L"PixelShader.cso").c_str());
-	pixelShaderUV = LoadPixelShader(FixPath(L"DebugUVsPS.cso").c_str());
-	pixelShaderNormal = LoadPixelShader(FixPath(L"DebugNormalsPS.cso").c_str());
-	pixelShaderCustom = LoadPixelShader(FixPath(L"CustomPS.cso").c_str());
+		// Load the Pixel Shaders via a helper method to make it easier
+		pixelShader = LoadPixelShader(FixPath(L"PixelShader.cso").c_str());
+		pixelShaderUV = LoadPixelShader(FixPath(L"DebugUVsPS.cso").c_str());
+		pixelShaderNormal = LoadPixelShader(FixPath(L"DebugNormalsPS.cso").c_str());
+		pixelShaderCustom = LoadPixelShader(FixPath(L"CustomPS.cso").c_str());
+		pixelShaderCombinedTexture = LoadPixelShader(FixPath(L"CombinedTexturePS.cso").c_str());
 
-	// Create an input layout 
-	//  - This describes the layout of data sent to a vertex shader
-	//  - In other words, it describes how to interpret data (numbers) in a vertex buffer
-	//  - Doing this NOW because it requires a vertex shader's byte code to verify against!
-	//  - Luckily, we already have that loaded (the vertex shader blob above)
-	D3D11_INPUT_ELEMENT_DESC inputElements[3] = {};
+		// Create an input layout 
+		//  - This describes the layout of data sent to a vertex shader
+		//  - In other words, it describes how to interpret data (numbers) in a vertex buffer
+		//  - Doing this NOW because it requires a vertex shader's byte code to verify against!
+		//  - Luckily, we already have that loaded (the vertex shader blob above)
+		D3D11_INPUT_ELEMENT_DESC inputElements[3] = {};
 
-	// Set up the first element - a position, which is 3 float values
-	inputElements[0].Format = DXGI_FORMAT_R32G32B32_FLOAT;				// Most formats are described as color channels; really it just means "Three 32-bit floats"
-	inputElements[0].SemanticName = "POSITION";							// This is "POSITION" - needs to match the semantics in our vertex shader input!
-	inputElements[0].AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT;	// How far into the vertex is this?  Assume it's after the previous element
+		// Set up the first element - a position, which is 3 float values
+		inputElements[0].Format = DXGI_FORMAT_R32G32B32_FLOAT;				// Most formats are described as color channels; really it just means "Three 32-bit floats"
+		inputElements[0].SemanticName = "POSITION";							// This is "POSITION" - needs to match the semantics in our vertex shader input!
+		inputElements[0].AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT;	// How far into the vertex is this?  Assume it's after the previous element
 
-	// Set up the second element - uv values, which is 2 more float values
-	inputElements[1].Format = DXGI_FORMAT_R32G32_FLOAT;					// 2x 32-bit floats
-	inputElements[1].SemanticName = "TEXCOORD";							// Match our vertex shader input!
-	inputElements[1].AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT;	// After the previous element
+		// Set up the second element - uv values, which is 2 more float values
+		inputElements[1].Format = DXGI_FORMAT_R32G32_FLOAT;					// 2x 32-bit floats
+		inputElements[1].SemanticName = "TEXCOORD";							// Match our vertex shader input!
+		inputElements[1].AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT;	// After the previous element
 
-	// Set up the third element - normal values, which is 3 more float values
-	inputElements[2].Format = DXGI_FORMAT_R32G32B32_FLOAT;				// 3x 32-bit floats
-	inputElements[2].SemanticName = "NORMAL";							// Match our vertex shader input!
-	inputElements[2].AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT;	// After the previous element
+		// Set up the third element - normal values, which is 3 more float values
+		inputElements[2].Format = DXGI_FORMAT_R32G32B32_FLOAT;				// 3x 32-bit floats
+		inputElements[2].SemanticName = "NORMAL";							// Match our vertex shader input!
+		inputElements[2].AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT;	// After the previous element
 
-	// Create the input layout, verifying our description against actual shader code
-	Graphics::Device->CreateInputLayout(
-		inputElements,							// An array of descriptions
-		3,										// How many elements in that array?
-		vertexShaderBlob->GetBufferPointer(),	// Pointer to the code of a shader that uses this layout
-		vertexShaderBlob->GetBufferSize(),		// Size of the shader code that uses this layout
-		inputLayout.GetAddressOf());			// Address of the resulting ID3D11InputLayout pointer
-}
+		// Create the input layout, verifying our description against actual shader code
+		Graphics::Device->CreateInputLayout(
+			inputElements,							// An array of descriptions
+			3,										// How many elements in that array?
+			vertexShaderBlob->GetBufferPointer(),	// Pointer to the code of a shader that uses this layout
+			vertexShaderBlob->GetBufferSize(),		// Size of the shader code that uses this layout
+			inputLayout.GetAddressOf());			// Address of the resulting ID3D11InputLayout pointer
+	}
 
-// --------------------------------------------------------
-// Creates the geometry we're going to draw
-// --------------------------------------------------------
-void Game::CreateGeometry()
-{
-	// Try to load in a texture
-	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> srv;
-	CreateWICTextureFromFile(
-		Graphics::Device.Get(),
-		Graphics::Context.Get(),
-		FixPath(L"../../Assets/Images/wood_floor.png").c_str(),
-		0,
-		srv.GetAddressOf());
+	// Create Geometry
+	{
+		// Create a sampler state
+		Microsoft::WRL::ComPtr<ID3D11SamplerState> samplerState;
+		D3D11_SAMPLER_DESC ssDesc{};
+		ssDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
+		ssDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
+		ssDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
+		ssDesc.Filter = D3D11_FILTER_ANISOTROPIC;
+		ssDesc.MaxAnisotropy = 16;
+		ssDesc.MaxLOD = D3D11_FLOAT32_MAX;
+		//ssDesc.MipLODBias = 15;
 
-	// Create the materials that we will be using
-	materials.push_back(std::make_shared<Material>("Red Tint", colorTints[0], vertexShader, pixelShader));
-	materials.push_back(std::make_shared<Material>("Green Tint", colorTints[1], vertexShader, pixelShader));
-	materials.push_back(std::make_shared<Material>("Blue Tint", colorTints[2], vertexShader, pixelShader));
-	materials.push_back(std::make_shared<Material>("UV Values", colorTints[0], vertexShader, pixelShaderUV));
-	materials.push_back(std::make_shared<Material>("Normal Values", colorTints[0], vertexShader, pixelShaderNormal));
-	materials.push_back(std::make_shared<Material>("Custom", colorTints[0], vertexShader, pixelShaderCustom));
+		Graphics::Device->CreateSamplerState(&ssDesc, samplerState.GetAddressOf());
 
-	// Create the various meshes that we need
-	meshes.push_back(std::make_shared<Mesh>(FixPath("../../Assets/Meshes/cube.obj").c_str()));
-	meshes.push_back(std::make_shared<Mesh>(FixPath("../../Assets/Meshes/sphere.obj").c_str()));
-	meshes.push_back(std::make_shared<Mesh>(FixPath("../../Assets/Meshes/cylinder.obj").c_str()));
-	meshes.push_back(std::make_shared<Mesh>(FixPath("../../Assets/Meshes/helix.obj").c_str()));
-	meshes.push_back(std::make_shared<Mesh>(FixPath("../../Assets/Meshes/torus.obj").c_str()));
-	meshes.push_back(std::make_shared<Mesh>(FixPath("../../Assets/Meshes/quad.obj").c_str()));
-	meshes.push_back(std::make_shared<Mesh>(FixPath("../../Assets/Meshes/quad_double_sided.obj").c_str()));
+		// Try to load in a texture
+		Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> woodSRV;
+		Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> stoneSRV;
+		Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> fabricSRV;
+		Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> mazeSRV;
 
-	// push back all of the premade and adjusted gameEntities
-	gameObjects.push_back(std::make_shared<GameEntities>("Cube", meshes[0], materials[0]));
-	gameObjects.push_back(std::make_shared<GameEntities>("Sphere", meshes[1], materials[1]));
-	gameObjects.push_back(std::make_shared<GameEntities>("Cylinder", meshes[2], materials[2]));
-	gameObjects.push_back(std::make_shared<GameEntities>("Helix", meshes[3], materials[5]));
-	gameObjects.push_back(std::make_shared<GameEntities>("Torus", meshes[4], materials[2]));
-	gameObjects.push_back(std::make_shared<GameEntities>("Quad", meshes[5], materials[1]));
-	gameObjects.push_back(std::make_shared<GameEntities>("Quad Double Sided", meshes[6], materials[0]));
+		CreateWICTextureFromFile(Graphics::Device.Get(), Graphics::Context.Get(), FixPath(L"../../Assets/Images/wood_floor.png").c_str(), 0, woodSRV.GetAddressOf());
+		CreateWICTextureFromFile(Graphics::Device.Get(), Graphics::Context.Get(), FixPath(L"../../Assets/Images/stone_path.png").c_str(), 0, stoneSRV.GetAddressOf());
+		CreateWICTextureFromFile(Graphics::Device.Get(), Graphics::Context.Get(), FixPath(L"../../Assets/Images/woven_fabric.png").c_str(), 0, fabricSRV.GetAddressOf());
+		CreateWICTextureFromFile(Graphics::Device.Get(), Graphics::Context.Get(), FixPath(L"../../Assets/Images/maze_texture.png").c_str(), 0, mazeSRV.GetAddressOf());
 
-	// Adjust positions
-	gameObjects[0]->GetTransform()->MoveAbsolute(-9.0f, 0.0f, 0.0f);
-	gameObjects[1]->GetTransform()->MoveAbsolute(-6.0f, 0.0f, 0.0f);
-	gameObjects[2]->GetTransform()->MoveAbsolute(-3.0f, 0.0f, 0.0f);
-	gameObjects[4]->GetTransform()->MoveAbsolute(+3.0f, 0.0f, 0.0f);
-	gameObjects[5]->GetTransform()->MoveAbsolute(+6.0f, 0.0f, 0.0f);
-	gameObjects[6]->GetTransform()->MoveAbsolute(+9.0f, 0.0f, 0.0f);
+		// Create the materials that we will be using
+		std::shared_ptr<Material> woodFloor = std::make_shared<Material>("Wood Floor", colorTints[0], vertexShader, pixelShader, XMFLOAT2(2,2), XMFLOAT2(0.75,0.));
+		woodFloor->AddSampler(0, samplerState);
+		woodFloor->AddTextureSRV(0, woodSRV);
 
-	// Create UV gameobjects
-	gameObjects.push_back(std::make_shared<GameEntities>("UV Cube", meshes[0], materials[3]));
-	gameObjects.push_back(std::make_shared<GameEntities>("UV Sphere", meshes[1], materials[3]));
-	gameObjects.push_back(std::make_shared<GameEntities>("UV Cylinder", meshes[2], materials[3]));
-	gameObjects.push_back(std::make_shared<GameEntities>("UV Helix", meshes[3], materials[3]));
-	gameObjects.push_back(std::make_shared<GameEntities>("UV Torus", meshes[4], materials[3]));
-	gameObjects.push_back(std::make_shared<GameEntities>("UV Quad", meshes[5], materials[3]));
-	gameObjects.push_back(std::make_shared<GameEntities>("UV Quad Double Sided", meshes[6], materials[3]));
+		std::shared_ptr<Material> woodFloorGreen = std::make_shared<Material>("Green Wood Floor", colorTints[2], vertexShader, pixelShader, XMFLOAT2(5, 5), XMFLOAT2(0.5, 0.5));
+		woodFloorGreen->AddSampler(0, samplerState);
+		woodFloorGreen->AddTextureSRV(0, woodSRV);
 
-	// Adjust positions
-	gameObjects[7]->GetTransform()->MoveAbsolute(-9.0f, +3.0f, 0.0f);
-	gameObjects[8]->GetTransform()->MoveAbsolute(-6.0f, +3.0f, 0.0f);
-	gameObjects[9]->GetTransform()->MoveAbsolute(-3.0f, +3.0f, 0.0f);
-	gameObjects[10]->GetTransform()->MoveAbsolute(0.0f, +3.0f, 0.0f);
-	gameObjects[11]->GetTransform()->MoveAbsolute(+3.0f, +3.0f, 0.0f);
-	gameObjects[12]->GetTransform()->MoveAbsolute(+6.0f, +3.0f, 0.0f);
-	gameObjects[13]->GetTransform()->MoveAbsolute(+9.0f, +3.0f, 0.0f);
+		std::shared_ptr<Material> stonePath = std::make_shared<Material>("Stone Path", colorTints[0], vertexShader, pixelShader, XMFLOAT2(1, 1), XMFLOAT2(0, 0));
+		stonePath->AddSampler(0, samplerState);
+		stonePath->AddTextureSRV(0, stoneSRV);
 
-	// Create Normal Value gameobjects
-	gameObjects.push_back(std::make_shared<GameEntities>("Normal Cube", meshes[0], materials[4]));
-	gameObjects.push_back(std::make_shared<GameEntities>("Normal Sphere", meshes[1], materials[4]));
-	gameObjects.push_back(std::make_shared<GameEntities>("Normal Cylinder", meshes[2], materials[4]));
-	gameObjects.push_back(std::make_shared<GameEntities>("Normal Helix", meshes[3], materials[4]));
-	gameObjects.push_back(std::make_shared<GameEntities>("Normal Torus", meshes[4], materials[4]));
-	gameObjects.push_back(std::make_shared<GameEntities>("Normal Quad", meshes[5], materials[4]));
-	gameObjects.push_back(std::make_shared<GameEntities>("Normal Quad Double Sided", meshes[6], materials[4]));
+		std::shared_ptr<Material> stonePathRed = std::make_shared<Material>("Red Stone Path", colorTints[1], vertexShader, pixelShader, XMFLOAT2(1, 1), XMFLOAT2(0, 0));
+		stonePathRed->AddSampler(0, samplerState);
+		stonePathRed->AddTextureSRV(0, stoneSRV);
 
-	// Adjust positions
-	gameObjects[14]->GetTransform()->MoveAbsolute(-9.0f, +6.0f, 0.0f);
-	gameObjects[15]->GetTransform()->MoveAbsolute(-6.0f, +6.0f, 0.0f);
-	gameObjects[16]->GetTransform()->MoveAbsolute(-3.0f, +6.0f, 0.0f);
-	gameObjects[17]->GetTransform()->MoveAbsolute(0.0f, +6.0f, 0.0f);
-	gameObjects[18]->GetTransform()->MoveAbsolute(+3.0f, +6.0f, 0.0f);
-	gameObjects[19]->GetTransform()->MoveAbsolute(+6.0f, +6.0f, 0.0f);
-	gameObjects[20]->GetTransform()->MoveAbsolute(+9.0f, +6.0f, 0.0f);
+		std::shared_ptr<Material> woodMaze = std::make_shared<Material>("Wood Maze", colorTints[0], vertexShader, pixelShaderCombinedTexture, XMFLOAT2(1, 1), XMFLOAT2(0, 0));
+		woodMaze->AddSampler(0, samplerState);
+		woodMaze->AddTextureSRV(0, woodSRV);
+		woodMaze->AddTextureSRV(1, mazeSRV);
+
+		std::shared_ptr<Material> woodMazeBlue = std::make_shared<Material>("Blue Wood Maze", colorTints[3], vertexShader, pixelShaderCombinedTexture, XMFLOAT2(1, 1), XMFLOAT2(0, 0));
+		woodMazeBlue->AddSampler(0, samplerState);
+		woodMazeBlue->AddTextureSRV(0, woodSRV);
+		woodMazeBlue->AddTextureSRV(1, mazeSRV);
+
+		std::shared_ptr<Material> uvOutput = std::make_shared<Material>("UV Values", colorTints[0], vertexShader, pixelShaderUV, XMFLOAT2(1, 1), XMFLOAT2(0, 0));
+		uvOutput->AddSampler(0, samplerState);
+		std::shared_ptr<Material> normalOutput = std::make_shared<Material>("Normal Values", colorTints[0], vertexShader, pixelShaderNormal, XMFLOAT2(1, 1), XMFLOAT2(0, 0));
+		normalOutput->AddSampler(0, samplerState);
+		std::shared_ptr<Material> customOutput = std::make_shared<Material>("Custom", colorTints[0], vertexShader, pixelShaderCustom, XMFLOAT2(1, 1), XMFLOAT2(0, 0));
+		customOutput->AddSampler(0, samplerState);
+
+		materials.insert(materials.end(), { woodFloor, woodFloorGreen, stonePath, stonePathRed, woodMaze, woodMazeBlue, uvOutput, normalOutput, customOutput });
+
+		// Create the various meshes that we need
+		std::shared_ptr<Mesh> cube = std::make_shared<Mesh>(FixPath("../../Assets/Meshes/cube.obj").c_str());
+		std::shared_ptr<Mesh> sphere = std::make_shared<Mesh>(FixPath("../../Assets/Meshes/sphere.obj").c_str());
+		std::shared_ptr<Mesh> cylinder = std::make_shared<Mesh>(FixPath("../../Assets/Meshes/cylinder.obj").c_str());
+		std::shared_ptr<Mesh> helix = std::make_shared<Mesh>(FixPath("../../Assets/Meshes/helix.obj").c_str());
+		std::shared_ptr<Mesh> torus = std::make_shared<Mesh>(FixPath("../../Assets/Meshes/torus.obj").c_str());
+		std::shared_ptr<Mesh> quad = std::make_shared<Mesh>(FixPath("../../Assets/Meshes/quad.obj").c_str());
+		std::shared_ptr<Mesh> quadDoubleSided = std::make_shared<Mesh>(FixPath("../../Assets/Meshes/quad_double_sided.obj").c_str());
+
+		meshes.insert(meshes.end(), { cube, sphere, cylinder, helix, torus, quad, quadDoubleSided });
+
+		// Create the gameObjects
+		// push back all of the premade and adjusted gameEntities
+		gameObjects.push_back(std::make_shared<GameEntities>("Cube", cube, woodFloor));
+		gameObjects.push_back(std::make_shared<GameEntities>("Sphere", sphere, stonePath));
+		gameObjects.push_back(std::make_shared<GameEntities>("Cylinder", cylinder, woodMaze));
+		gameObjects.push_back(std::make_shared<GameEntities>("Helix", helix, customOutput));
+		gameObjects.push_back(std::make_shared<GameEntities>("Torus", torus, woodMazeBlue));
+		gameObjects.push_back(std::make_shared<GameEntities>("Quad", quad, stonePathRed));
+		gameObjects.push_back(std::make_shared<GameEntities>("Quad Double Sided", quadDoubleSided, woodFloorGreen));
+		// Create UV gameobjects
+		gameObjects.push_back(std::make_shared<GameEntities>("UV Cube", cube, uvOutput));
+		gameObjects.push_back(std::make_shared<GameEntities>("UV Sphere", sphere, uvOutput));
+		gameObjects.push_back(std::make_shared<GameEntities>("UV Cylinder", cylinder, uvOutput));
+		gameObjects.push_back(std::make_shared<GameEntities>("UV Helix", helix, uvOutput));
+		gameObjects.push_back(std::make_shared<GameEntities>("UV Torus", torus, uvOutput));
+		gameObjects.push_back(std::make_shared<GameEntities>("UV Quad", quad, uvOutput));
+		gameObjects.push_back(std::make_shared<GameEntities>("UV Quad Double Sided", quadDoubleSided, uvOutput));
+		// Create Normal Value gameobjects
+		gameObjects.push_back(std::make_shared<GameEntities>("Normal Cube", cube, normalOutput));
+		gameObjects.push_back(std::make_shared<GameEntities>("Normal Sphere", sphere, normalOutput));
+		gameObjects.push_back(std::make_shared<GameEntities>("Normal Cylinder", cylinder, normalOutput));
+		gameObjects.push_back(std::make_shared<GameEntities>("Normal Helix", helix, normalOutput));
+		gameObjects.push_back(std::make_shared<GameEntities>("Normal Torus", torus, normalOutput));
+		gameObjects.push_back(std::make_shared<GameEntities>("Normal Quad", quad, normalOutput));
+		gameObjects.push_back(std::make_shared<GameEntities>("Normal Quad Double Sided", quadDoubleSided, normalOutput));
+
+		// Adjust positions
+		gameObjects[0]->GetTransform()->MoveAbsolute(-9.0f, 0.0f, 0.0f);
+		gameObjects[1]->GetTransform()->MoveAbsolute(-6.0f, 0.0f, 0.0f);
+		gameObjects[2]->GetTransform()->MoveAbsolute(-3.0f, 0.0f, 0.0f);
+		gameObjects[4]->GetTransform()->MoveAbsolute(+3.0f, 0.0f, 0.0f);
+		gameObjects[5]->GetTransform()->MoveAbsolute(+6.0f, 0.0f, 0.0f);
+		gameObjects[6]->GetTransform()->MoveAbsolute(+9.0f, 0.0f, 0.0f);
+		gameObjects[7]->GetTransform()->MoveAbsolute(-9.0f, +3.0f, 0.0f);
+		gameObjects[8]->GetTransform()->MoveAbsolute(-6.0f, +3.0f, 0.0f);
+		gameObjects[9]->GetTransform()->MoveAbsolute(-3.0f, +3.0f, 0.0f);
+		gameObjects[10]->GetTransform()->MoveAbsolute(0.0f, +3.0f, 0.0f);
+		gameObjects[11]->GetTransform()->MoveAbsolute(+3.0f, +3.0f, 0.0f);
+		gameObjects[12]->GetTransform()->MoveAbsolute(+6.0f, +3.0f, 0.0f);
+		gameObjects[13]->GetTransform()->MoveAbsolute(+9.0f, +3.0f, 0.0f);
+		gameObjects[14]->GetTransform()->MoveAbsolute(-9.0f, +6.0f, 0.0f);
+		gameObjects[15]->GetTransform()->MoveAbsolute(-6.0f, +6.0f, 0.0f);
+		gameObjects[16]->GetTransform()->MoveAbsolute(-3.0f, +6.0f, 0.0f);
+		gameObjects[17]->GetTransform()->MoveAbsolute(0.0f, +6.0f, 0.0f);
+		gameObjects[18]->GetTransform()->MoveAbsolute(+3.0f, +6.0f, 0.0f);
+		gameObjects[19]->GetTransform()->MoveAbsolute(+6.0f, +6.0f, 0.0f);
+		gameObjects[20]->GetTransform()->MoveAbsolute(+9.0f, +6.0f, 0.0f);
+	}
 }
 
 // Get the ImGui library all the information that it needs to be created
@@ -383,6 +426,31 @@ void Game::ImGuiCreate(float deltaTime)
 			ImGui::Text("Near Clip Plane: %f", cameras[activeCamera]->GetNearClipPlane());
 			ImGui::Text("Far Clip Plane: %f", cameras[activeCamera]->GetFarClipPlane());
 		}
+
+		// Create a new menu for Materials and Textures
+		if (ImGui::CollapsingHeader("Materials & Textures")) {
+			// Display the information for each individual material
+			unsigned int index = 0;
+			for (auto& material : materials) {
+				ImGui::PushID(index);
+				if (ImGui::TreeNode(material->GetName())) {
+					// Add some basic information that can be changed in the debug menu
+					XMFLOAT4 tempColorTint = material->GetColorTint();
+					XMFLOAT2 tempUVScale = material->GetUVScale();
+					XMFLOAT2 tempUVOffset = material->GetUVOffset();
+					ImGui::ColorEdit4("Color Tint", &tempColorTint.x);
+					ImGui::DragFloat2("UV Scale", &tempUVScale.x, 0.01f);
+					ImGui::DragFloat2("UV Offset", &tempUVOffset.x, 0.01f);
+					material->SetColorTint(tempColorTint);
+					material->SetUVScale(tempUVScale);
+					material->SetUVOffset(tempUVOffset);
+					void* materialTexture = material->GetTextureSRVs()->Get();
+					ImGui::Image((void*)material->GetTextureSRVs()->Get(), ImVec2(512.0f, 512.0f));
+					ImGui::TreePop();
+				}
+				ImGui::PopID();
+			}
+		}
 	}
 	ImGui::End();
 }
@@ -507,6 +575,9 @@ void Game::Draw(float deltaTime, float totalTime)
 	Graphics::Context->ClearDepthStencilView(Graphics::DepthBufferDSV.Get(), D3D11_CLEAR_DEPTH, 1.0f, 0);
 
 	for(std::shared_ptr<GameEntities> gameEntity : gameObjects) {
+		// Bind the required samplers and textures for the gameObject
+		gameEntity->GetMaterial()->BindTexturesAndSamplers();
+
 		// Set the vertex shader and pixel shader
 		Graphics::Context->VSSetShader(gameEntity->GetMaterial()->GetVertexShader().Get(), 0, 0);
 		Graphics::Context->PSSetShader(gameEntity->GetMaterial()->GetPixelShader().Get(), 0, 0);
@@ -526,6 +597,8 @@ void Game::Draw(float deltaTime, float totalTime)
 		// Set the data for the Pixel Shader constant buffer
 		PSExternalData psData{};
 		psData.ColorTint = gameEntity->GetMaterial()->GetColorTint();
+		psData.UVScale = gameEntity->GetMaterial()->GetUVScale();
+		psData.UVOffset = gameEntity->GetMaterial()->GetUVOffset();
 		psData.TotalTime = totalTime;
 
 		FillAndBindNextConstantBuffer(

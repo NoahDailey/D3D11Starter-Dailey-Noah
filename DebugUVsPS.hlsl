@@ -3,6 +3,8 @@
 cbuffer ExternalData : register(b0)
 {
     float4 ColorTint; // A tint color of a pixel
+    float2 UVScale;
+    float2 UVOffset;
     float1 TotalTime; // The total time that has passed in the project
 }
 

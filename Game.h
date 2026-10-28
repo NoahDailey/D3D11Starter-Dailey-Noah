@@ -28,8 +28,7 @@ public:
 private:
 
 	// Initialization helper methods - feel free to customize, combine, remove, etc.
-	void LoadShaders();
-	void CreateGeometry();
+	void LoadShadersAndCreateGeometry();
 	void ImGuiCreate(float deltaTime);
 	Microsoft::WRL::ComPtr<ID3D11PixelShader> LoadPixelShader(const wchar_t* filePath);
 	void FillAndBindNextConstantBuffer(void* data, unsigned int dataSizeInBytes, D3D11_SHADER_TYPE shaderType, unsigned int registerSlot);
@@ -40,11 +39,13 @@ private:
 	//  - More info here: https://github.com/Microsoft/DirectXTK/wiki/ComPtr
 
 	// Shaders and shader-related constructs
-	Microsoft::WRL::ComPtr<ID3D11PixelShader> pixelShader;
 	Microsoft::WRL::ComPtr<ID3D11VertexShader> vertexShader;
+	Microsoft::WRL::ComPtr<ID3D11PixelShader> pixelShader;
 	Microsoft::WRL::ComPtr<ID3D11PixelShader> pixelShaderUV;
 	Microsoft::WRL::ComPtr<ID3D11PixelShader> pixelShaderNormal;
 	Microsoft::WRL::ComPtr<ID3D11PixelShader> pixelShaderCustom;
+	Microsoft::WRL::ComPtr<ID3D11PixelShader> pixelShaderCombinedTexture;
+
 	Microsoft::WRL::ComPtr<ID3D11InputLayout> inputLayout;
 
 	Microsoft::WRL::ComPtr<ID3D11Buffer> VSConstantBuffer;
