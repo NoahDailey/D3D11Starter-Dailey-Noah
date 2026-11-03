@@ -49,12 +49,36 @@ float4 main(VertexToPixel input) : SV_TARGET
     // Ambiant term
     float3 ambientTerm = AmbientColor * surfaceColor;
     
+    // Needed calculations for diffuse
+    float3 lightDirection = normalize(DirectionalLight1.Direction);
+    
     // Diffuse value
-    float diffuseIntensity = saturate(dot(input.normal, normalize(-DirectionalLight1.Direction)));
+    float diffuseIntensity = saturate(dot(input.normal, -lightDirection));
     float3 diffuseTerm = diffuseIntensity * DirectionalLight1.Color * DirectionalLight1.Intensity * surfaceColor;
     
+    // Needed calculations for specular
+    float3 camDirection = normalize(CameraPosition - input.worldPosiiton);
+    
+    // Specular Calculations
+    // A specular scaling factor might come from a texture (just the red channel)
+    float specScale = SurfaceTexture.Sample(BasicSampler, input.uv).r;
+    
+    // Calculate the reflection of the INCOMING light direction
+    // using the durface normal (ensure both are normalized first
+    float3 reflection = reflect(lightDirection, input.normal);
+    
+    // Calculate cosine of the reflection and camera vector
+    // - saturate() ensures it's between 0 and 1
+    float RdotV = saturate(dot(reflection, camDirection));
+    
+    // Raise the that to a power equal to some "shininess"
+    // factor - try large numbers here (64, 200, etc.)
+    float3 specularTerm = pow(RdotV, SHININESS) * specScale *   // Initial specular term * scale
+    DirectionalLight1.Color * DirectionalLight1.Intensity *     // Colored by light's color
+    surfaceColor;                                               // Tinted by surface color
+    
     // Build the final color
-    finalColor = ambientTerm + diffuseTerm;
+    finalColor = ambientTerm + diffuseTerm + specularTerm;
    
     return float4(finalColor, 1);
 }

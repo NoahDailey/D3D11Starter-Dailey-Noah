@@ -36,7 +36,7 @@ Game::Game()
 	offset = { 1.0f, 0.0f, 0.0f };
 
 	// Lighting variable initialization
-	ambientColor = XMFLOAT3(0.1f, 0.1f, 0.25f);
+	ambientColor = XMFLOAT3(0.15f, 0.15f, 0.35f);
 	directionalLight1 = {};
 	directionalLight1.Type = 0;
 	directionalLight1.Direction = XMFLOAT3(1.0f, 0.0f, 0.0f);
