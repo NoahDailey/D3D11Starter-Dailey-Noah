@@ -3,6 +3,7 @@
 #include "GameEntities.h"
 #include "Camera.h"
 #include "Material.h"
+#include "Lights.h"
 
 #include <d3d11.h>
 #include <d3d11shadertracing.h>
@@ -81,4 +82,5 @@ private:
 
 	// Lighting required variables
 	DirectX::XMFLOAT3 ambientColor;
+	Light directionalLight1;
 };

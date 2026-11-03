@@ -36,7 +36,12 @@ Game::Game()
 	offset = { 1.0f, 0.0f, 0.0f };
 
 	// Lighting variable initialization
-	ambientColor = XMFLOAT3(0.15f, 0.15f, 0.35f);
+	ambientColor = XMFLOAT3(0.1f, 0.1f, 0.25f);
+	directionalLight1 = {};
+	directionalLight1.Type = 0;
+	directionalLight1.Direction = XMFLOAT3(1.0f, 0.0f, 0.0f);
+	directionalLight1.Color = XMFLOAT3(1, 0, 0);
+	directionalLight1.Intensity = 1.0f;
 
 	// Helper methods for loading shaders, creating some basic
 	// geometry to draw and some simple camera matrices.
@@ -254,7 +259,18 @@ void Game::LoadShadersAndCreateGeometry()
 		gameObjects.push_back(std::make_shared<GameEntities>("Torus", torus, woodFloor));
 		gameObjects.push_back(std::make_shared<GameEntities>("Quad", quad, woodFloor));
 		gameObjects.push_back(std::make_shared<GameEntities>("Quad Double Sided", quadDoubleSided, woodFloor));
-		//// Create UV gameobjects
+
+		// Adjust positions
+		gameObjects[0]->GetTransform()->MoveAbsolute(-9.0f, 0.0f, 0.0f);
+		gameObjects[1]->GetTransform()->MoveAbsolute(-6.0f, 0.0f, 0.0f);
+		gameObjects[2]->GetTransform()->MoveAbsolute(-3.0f, 0.0f, 0.0f);
+		gameObjects[4]->GetTransform()->MoveAbsolute(+3.0f, 0.0f, 0.0f);
+		gameObjects[5]->GetTransform()->MoveAbsolute(+6.0f, 0.0f, 0.0f);
+		gameObjects[6]->GetTransform()->MoveAbsolute(+9.0f, 0.0f, 0.0f);
+
+		// Old gameObjects
+		{
+			//// Create UV gameobjects
 		//gameObjects.push_back(std::make_shared<GameEntities>("UV Cube", cube, uvOutput));
 		//gameObjects.push_back(std::make_shared<GameEntities>("UV Sphere", sphere, uvOutput));
 		//gameObjects.push_back(std::make_shared<GameEntities>("UV Cylinder", cylinder, uvOutput));
@@ -271,13 +287,6 @@ void Game::LoadShadersAndCreateGeometry()
 		//gameObjects.push_back(std::make_shared<GameEntities>("Normal Quad", quad, normalOutput));
 		//gameObjects.push_back(std::make_shared<GameEntities>("Normal Quad Double Sided", quadDoubleSided, normalOutput));
 
-		// Adjust positions
-		gameObjects[0]->GetTransform()->MoveAbsolute(-9.0f, 0.0f, 0.0f);
-		gameObjects[1]->GetTransform()->MoveAbsolute(-6.0f, 0.0f, 0.0f);
-		gameObjects[2]->GetTransform()->MoveAbsolute(-3.0f, 0.0f, 0.0f);
-		gameObjects[4]->GetTransform()->MoveAbsolute(+3.0f, 0.0f, 0.0f);
-		gameObjects[5]->GetTransform()->MoveAbsolute(+6.0f, 0.0f, 0.0f);
-		gameObjects[6]->GetTransform()->MoveAbsolute(+9.0f, 0.0f, 0.0f);
 		//gameObjects[7]->GetTransform()->MoveAbsolute(-9.0f, +3.0f, 0.0f);
 		//gameObjects[8]->GetTransform()->MoveAbsolute(-6.0f, +3.0f, 0.0f);
 		//gameObjects[9]->GetTransform()->MoveAbsolute(-3.0f, +3.0f, 0.0f);
@@ -292,6 +301,7 @@ void Game::LoadShadersAndCreateGeometry()
 		//gameObjects[18]->GetTransform()->MoveAbsolute(+3.0f, +6.0f, 0.0f);
 		//gameObjects[19]->GetTransform()->MoveAbsolute(+6.0f, +6.0f, 0.0f);
 		//gameObjects[20]->GetTransform()->MoveAbsolute(+9.0f, +6.0f, 0.0f);
+		}
 	}
 }
 
@@ -604,6 +614,7 @@ void Game::Draw(float deltaTime, float totalTime)
 		psData.UVScale = gameEntity->GetMaterial()->GetUVScale();
 		psData.UVOffset = gameEntity->GetMaterial()->GetUVOffset();
 		psData.TotalTime = totalTime;
+		memcpy(&psData.DirectionalLight1, &directionalLight1, sizeof(Light));
 		psData.CameraPosition = cameras[activeCamera]->GetTransform()->GetPosition();
 		psData.AmbientColor = ambientColor;
 

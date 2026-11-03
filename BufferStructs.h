@@ -1,5 +1,6 @@
 #pragma once
 #include "DirectXMath.h"
+#include "Lights.h"
 
 /// <summary>
 /// A struct that contains data that will be sent and kept
@@ -25,6 +26,9 @@ struct PSExternalData
 	float					TotalTime;			// The total time that has passed
 	DirectX::XMFLOAT3		CameraPosition;		// Current position of the camera
 
+	Light					DirectionalLight1;	// A test directional Light
+
 	DirectX::XMFLOAT3		ColorTint;			// A tint color of a pixel
+	float					Padding;
 	DirectX::XMFLOAT3		AmbientColor;		// Ambient color of the pixel
 };
