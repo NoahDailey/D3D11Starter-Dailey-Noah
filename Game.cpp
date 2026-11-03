@@ -245,28 +245,28 @@ void Game::LoadShadersAndCreateGeometry()
 		// Create the gameObjects
 		// push back all of the premade and adjusted gameEntities
 		gameObjects.push_back(std::make_shared<GameEntities>("Cube", cube, woodFloor));
-		gameObjects.push_back(std::make_shared<GameEntities>("Sphere", sphere, stonePath));
-		gameObjects.push_back(std::make_shared<GameEntities>("Cylinder", cylinder, woodMaze));
-		gameObjects.push_back(std::make_shared<GameEntities>("Helix", helix, customOutput));
-		gameObjects.push_back(std::make_shared<GameEntities>("Torus", torus, woodMazeBlue));
-		gameObjects.push_back(std::make_shared<GameEntities>("Quad", quad, stonePathRed));
-		gameObjects.push_back(std::make_shared<GameEntities>("Quad Double Sided", quadDoubleSided, woodFloorGreen));
-		// Create UV gameobjects
-		gameObjects.push_back(std::make_shared<GameEntities>("UV Cube", cube, uvOutput));
-		gameObjects.push_back(std::make_shared<GameEntities>("UV Sphere", sphere, uvOutput));
-		gameObjects.push_back(std::make_shared<GameEntities>("UV Cylinder", cylinder, uvOutput));
-		gameObjects.push_back(std::make_shared<GameEntities>("UV Helix", helix, uvOutput));
-		gameObjects.push_back(std::make_shared<GameEntities>("UV Torus", torus, uvOutput));
-		gameObjects.push_back(std::make_shared<GameEntities>("UV Quad", quad, uvOutput));
-		gameObjects.push_back(std::make_shared<GameEntities>("UV Quad Double Sided", quadDoubleSided, uvOutput));
-		// Create Normal Value gameobjects
-		gameObjects.push_back(std::make_shared<GameEntities>("Normal Cube", cube, normalOutput));
-		gameObjects.push_back(std::make_shared<GameEntities>("Normal Sphere", sphere, normalOutput));
-		gameObjects.push_back(std::make_shared<GameEntities>("Normal Cylinder", cylinder, normalOutput));
-		gameObjects.push_back(std::make_shared<GameEntities>("Normal Helix", helix, normalOutput));
-		gameObjects.push_back(std::make_shared<GameEntities>("Normal Torus", torus, normalOutput));
-		gameObjects.push_back(std::make_shared<GameEntities>("Normal Quad", quad, normalOutput));
-		gameObjects.push_back(std::make_shared<GameEntities>("Normal Quad Double Sided", quadDoubleSided, normalOutput));
+		gameObjects.push_back(std::make_shared<GameEntities>("Sphere", sphere, woodFloor));
+		gameObjects.push_back(std::make_shared<GameEntities>("Cylinder", cylinder, woodFloor));
+		gameObjects.push_back(std::make_shared<GameEntities>("Helix", helix, woodFloor));
+		gameObjects.push_back(std::make_shared<GameEntities>("Torus", torus, woodFloor));
+		gameObjects.push_back(std::make_shared<GameEntities>("Quad", quad, woodFloor));
+		gameObjects.push_back(std::make_shared<GameEntities>("Quad Double Sided", quadDoubleSided, woodFloor));
+		//// Create UV gameobjects
+		//gameObjects.push_back(std::make_shared<GameEntities>("UV Cube", cube, uvOutput));
+		//gameObjects.push_back(std::make_shared<GameEntities>("UV Sphere", sphere, uvOutput));
+		//gameObjects.push_back(std::make_shared<GameEntities>("UV Cylinder", cylinder, uvOutput));
+		//gameObjects.push_back(std::make_shared<GameEntities>("UV Helix", helix, uvOutput));
+		//gameObjects.push_back(std::make_shared<GameEntities>("UV Torus", torus, uvOutput));
+		//gameObjects.push_back(std::make_shared<GameEntities>("UV Quad", quad, uvOutput));
+		//gameObjects.push_back(std::make_shared<GameEntities>("UV Quad Double Sided", quadDoubleSided, uvOutput));
+		//// Create Normal Value gameobjects
+		//gameObjects.push_back(std::make_shared<GameEntities>("Normal Cube", cube, normalOutput));
+		//gameObjects.push_back(std::make_shared<GameEntities>("Normal Sphere", sphere, normalOutput));
+		//gameObjects.push_back(std::make_shared<GameEntities>("Normal Cylinder", cylinder, normalOutput));
+		//gameObjects.push_back(std::make_shared<GameEntities>("Normal Helix", helix, normalOutput));
+		//gameObjects.push_back(std::make_shared<GameEntities>("Normal Torus", torus, normalOutput));
+		//gameObjects.push_back(std::make_shared<GameEntities>("Normal Quad", quad, normalOutput));
+		//gameObjects.push_back(std::make_shared<GameEntities>("Normal Quad Double Sided", quadDoubleSided, normalOutput));
 
 		// Adjust positions
 		gameObjects[0]->GetTransform()->MoveAbsolute(-9.0f, 0.0f, 0.0f);
@@ -275,20 +275,20 @@ void Game::LoadShadersAndCreateGeometry()
 		gameObjects[4]->GetTransform()->MoveAbsolute(+3.0f, 0.0f, 0.0f);
 		gameObjects[5]->GetTransform()->MoveAbsolute(+6.0f, 0.0f, 0.0f);
 		gameObjects[6]->GetTransform()->MoveAbsolute(+9.0f, 0.0f, 0.0f);
-		gameObjects[7]->GetTransform()->MoveAbsolute(-9.0f, +3.0f, 0.0f);
-		gameObjects[8]->GetTransform()->MoveAbsolute(-6.0f, +3.0f, 0.0f);
-		gameObjects[9]->GetTransform()->MoveAbsolute(-3.0f, +3.0f, 0.0f);
-		gameObjects[10]->GetTransform()->MoveAbsolute(0.0f, +3.0f, 0.0f);
-		gameObjects[11]->GetTransform()->MoveAbsolute(+3.0f, +3.0f, 0.0f);
-		gameObjects[12]->GetTransform()->MoveAbsolute(+6.0f, +3.0f, 0.0f);
-		gameObjects[13]->GetTransform()->MoveAbsolute(+9.0f, +3.0f, 0.0f);
-		gameObjects[14]->GetTransform()->MoveAbsolute(-9.0f, +6.0f, 0.0f);
-		gameObjects[15]->GetTransform()->MoveAbsolute(-6.0f, +6.0f, 0.0f);
-		gameObjects[16]->GetTransform()->MoveAbsolute(-3.0f, +6.0f, 0.0f);
-		gameObjects[17]->GetTransform()->MoveAbsolute(0.0f, +6.0f, 0.0f);
-		gameObjects[18]->GetTransform()->MoveAbsolute(+3.0f, +6.0f, 0.0f);
-		gameObjects[19]->GetTransform()->MoveAbsolute(+6.0f, +6.0f, 0.0f);
-		gameObjects[20]->GetTransform()->MoveAbsolute(+9.0f, +6.0f, 0.0f);
+		//gameObjects[7]->GetTransform()->MoveAbsolute(-9.0f, +3.0f, 0.0f);
+		//gameObjects[8]->GetTransform()->MoveAbsolute(-6.0f, +3.0f, 0.0f);
+		//gameObjects[9]->GetTransform()->MoveAbsolute(-3.0f, +3.0f, 0.0f);
+		//gameObjects[10]->GetTransform()->MoveAbsolute(0.0f, +3.0f, 0.0f);
+		//gameObjects[11]->GetTransform()->MoveAbsolute(+3.0f, +3.0f, 0.0f);
+		//gameObjects[12]->GetTransform()->MoveAbsolute(+6.0f, +3.0f, 0.0f);
+		//gameObjects[13]->GetTransform()->MoveAbsolute(+9.0f, +3.0f, 0.0f);
+		//gameObjects[14]->GetTransform()->MoveAbsolute(-9.0f, +6.0f, 0.0f);
+		//gameObjects[15]->GetTransform()->MoveAbsolute(-6.0f, +6.0f, 0.0f);
+		//gameObjects[16]->GetTransform()->MoveAbsolute(-3.0f, +6.0f, 0.0f);
+		//gameObjects[17]->GetTransform()->MoveAbsolute(0.0f, +6.0f, 0.0f);
+		//gameObjects[18]->GetTransform()->MoveAbsolute(+3.0f, +6.0f, 0.0f);
+		//gameObjects[19]->GetTransform()->MoveAbsolute(+6.0f, +6.0f, 0.0f);
+		//gameObjects[20]->GetTransform()->MoveAbsolute(+9.0f, +6.0f, 0.0f);
 	}
 }
 
@@ -556,8 +556,8 @@ void Game::Update(float deltaTime, float totalTime)
 
 	float scaleValue = (float)sin(totalTime) * 0.25f + 1.0f;
 	gameObjects[0]->GetTransform()->SetScale(scaleValue, scaleValue, scaleValue);
-	gameObjects[7]->GetTransform()->SetScale(scaleValue, scaleValue, scaleValue);
-	gameObjects[14]->GetTransform()->SetScale(scaleValue, scaleValue, scaleValue);
+	//gameObjects[7]->GetTransform()->SetScale(scaleValue, scaleValue, scaleValue);
+	//gameObjects[14]->GetTransform()->SetScale(scaleValue, scaleValue, scaleValue);
 
 	cameras[activeCamera]->Update(deltaTime);
 }
