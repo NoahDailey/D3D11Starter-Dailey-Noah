@@ -35,6 +35,9 @@ Game::Game()
 	colorTints.push_back({ 0.0f, 0.0f, 1.0f, 1.0f });
 	offset = { 1.0f, 0.0f, 0.0f };
 
+	// Lighting variable initialization
+	ambientColor = XMFLOAT3(0.15f, 0.15f, 0.35f);
+
 	// Helper methods for loading shaders, creating some basic
 	// geometry to draw and some simple camera matrices.
 	//  - You'll be expanding and/or replacing these later
@@ -596,10 +599,12 @@ void Game::Draw(float deltaTime, float totalTime)
 
 		// Set the data for the Pixel Shader constant buffer
 		PSExternalData psData{};
-		psData.ColorTint = gameEntity->GetMaterial()->GetColorTint();
+		psData.ColorTint = colorTints[0];
 		psData.UVScale = gameEntity->GetMaterial()->GetUVScale();
 		psData.UVOffset = gameEntity->GetMaterial()->GetUVOffset();
 		psData.TotalTime = totalTime;
+		psData.CameraPosition = cameras[activeCamera]->GetTransform()->GetPosition();
+		psData.AmbientColor = ambientColor;
 
 		FillAndBindNextConstantBuffer(
 			&psData,

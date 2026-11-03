@@ -78,4 +78,7 @@ private:
 	unsigned int cbHeapSizeInBytes;
 	// Position of the next unused portion of the heap
 	unsigned int cbHeapOffsetInBytes;
+
+	// Lighting required variables
+	DirectX::XMFLOAT3 ambientColor;
 };

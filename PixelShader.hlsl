@@ -4,10 +4,12 @@
 // on the GPU to the Vertex Shader
 cbuffer ExternalData : register(b0)
 {
-    float4 ColorTint; // A tint color of a pixel
+    float4 ColorTint;       // A tint color of a pixel
     float2 UVScale;
     float2 UVOffset;
-    float1 TotalTime; // The total time that has passed
+    float1 TotalTime;       // The total time that has passed
+    float3 CameraPosition;  // Current position of the camera
+    float3 AmbientColor;    // Ambient color of the pixel
 }
 
 Texture2D SurfaceTexture  : register(t0); // "t" registers for textures
@@ -25,11 +27,11 @@ SamplerState BasicSampler : register(s0); // "s" registers for samplers
 float4 main(VertexToPixel input) : SV_TARGET
 {
     input.uv = input.uv * UVScale + UVOffset;
+    
     float3 surfaceColor = SurfaceTexture.Sample(BasicSampler, input.uv).rgb;
-    surfaceColor *= ColorTint;
-	// Just return the input color
-	// - This color (like most values passing through the rasterizer) is 
-	//   interpolated for each pixel between the corresponding vertices 
-	//   of the triangle we're rendering
-    return float4(surfaceColor, 1);
+    float3 textureColor = surfaceColor * (float3) ColorTint;
+    
+    float3 ambientTerm = AmbientColor * textureColor * (float3) ColorTint;
+   
+    return float4(ambientTerm, 1);
 }

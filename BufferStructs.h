@@ -19,7 +19,12 @@ struct VSExternalData
 struct PSExternalData
 {
 	DirectX::XMFLOAT4		ColorTint;			// A tint color of a pixel
+
 	DirectX::XMFLOAT2		UVScale;
 	DirectX::XMFLOAT2		UVOffset;
-	float					TotalTime; // The total time that has passed
+
+	float					TotalTime;			// The total time that has passed
+	DirectX::XMFLOAT3		CameraPosition;		// Current position of the camera
+
+	DirectX::XMFLOAT3		AmbientColor;		// Ambient color of the pixel
 };
