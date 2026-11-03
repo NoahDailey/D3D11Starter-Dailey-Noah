@@ -10,6 +10,7 @@ struct VSExternalData
 	DirectX::XMFLOAT4X4		World;				// A change in transform
 	DirectX::XMFLOAT4X4		ViewMatrix;			// A camera view matrix
 	DirectX::XMFLOAT4X4		ProjectionMatrix;	// A camera projection matrix
+	DirectX::XMFLOAT4X4		WorldInvTranspose;	// An inverse of the world transform
 };
 
 /// <summary>
@@ -18,13 +19,12 @@ struct VSExternalData
 /// </summary>
 struct PSExternalData
 {
-	DirectX::XMFLOAT4		ColorTint;			// A tint color of a pixel
-
 	DirectX::XMFLOAT2		UVScale;
 	DirectX::XMFLOAT2		UVOffset;
 
 	float					TotalTime;			// The total time that has passed
 	DirectX::XMFLOAT3		CameraPosition;		// Current position of the camera
 
+	DirectX::XMFLOAT3		ColorTint;			// A tint color of a pixel
 	DirectX::XMFLOAT3		AmbientColor;		// Ambient color of the pixel
 };

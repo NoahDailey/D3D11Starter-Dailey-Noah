@@ -4,11 +4,13 @@
 // on the GPU to the Vertex Shader
 cbuffer ExternalData : register(b0)
 {
-    float4 ColorTint;       // A tint color of a pixel
     float2 UVScale;
     float2 UVOffset;
+    
     float1 TotalTime;       // The total time that has passed
     float3 CameraPosition;  // Current position of the camera
+    
+    float4 ColorTint;       // A tint color of a pixel
     float3 AmbientColor;    // Ambient color of the pixel
 }
 
@@ -26,6 +28,8 @@ SamplerState BasicSampler : register(s0); // "s" registers for samplers
 // --------------------------------------------------------
 float4 main(VertexToPixel input) : SV_TARGET
 {
+    input.normal = normalize(input.normal);
+    
     input.uv = input.uv * UVScale + UVOffset;
     
     float3 surfaceColor = SurfaceTexture.Sample(BasicSampler, input.uv).rgb;

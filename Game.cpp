@@ -590,6 +590,7 @@ void Game::Draw(float deltaTime, float totalTime)
 		vsData.World = gameEntity->GetTransform()->GetWorldMatrix();
 		vsData.ViewMatrix = cameras[activeCamera]->GetViewMatrix();
 		vsData.ProjectionMatrix = cameras[activeCamera]->GetProjectionMatrix();
+		vsData.WorldInvTranspose = gameEntity->GetTransform()->GetWorldInverseTransposeMatrix();
 
 		FillAndBindNextConstantBuffer(
 			&vsData,
@@ -599,7 +600,7 @@ void Game::Draw(float deltaTime, float totalTime)
 
 		// Set the data for the Pixel Shader constant buffer
 		PSExternalData psData{};
-		psData.ColorTint = colorTints[0];
+		psData.ColorTint = XMFLOAT3(1.0f, 1.0f, 1.0f);
 		psData.UVScale = gameEntity->GetMaterial()->GetUVScale();
 		psData.UVOffset = gameEntity->GetMaterial()->GetUVOffset();
 		psData.TotalTime = totalTime;
