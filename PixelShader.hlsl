@@ -5,17 +5,19 @@
 // on the GPU to the Vertex Shader
 cbuffer ExternalData : register(b0)
 {
+    Light lights[MAX_NUMBER_LIGHTS];
+    
+    float1 LightsCount;
+    float3 AmbientColor; // Ambient color of the pixel
+    
+    float3 CameraPosition; // Current position of the camera
+    float1 padding;
+    
+    float3 ColorTint; // A tint color of a pixel
+    float1 morepadding;
+    
     float2 UVScale;
     float2 UVOffset;
-    
-    float1 TotalTime;       // The total time that has passed
-    float3 CameraPosition;  // Current position of the camera
-    
-    Light DirectionalLight1;
-    
-    float3 ColorTint;       // A tint color of a pixel
-    float1 padding;
-    float3 AmbientColor;    // Ambient color of the pixel
 }
 
 Texture2D SurfaceTexture  : register(t0); // "t" registers for textures
@@ -49,36 +51,29 @@ float4 main(VertexToPixel input) : SV_TARGET
     // Ambiant term
     float3 ambientTerm = AmbientColor * surfaceColor;
     
-    // Needed calculations for diffuse
-    float3 lightDirection = normalize(DirectionalLight1.Direction);
-    
-    // Diffuse value
-    float diffuseIntensity = saturate(dot(input.normal, -lightDirection));
-    float3 diffuseTerm = diffuseIntensity * DirectionalLight1.Color * DirectionalLight1.Intensity * surfaceColor;
-    
-    // Needed calculations for specular
-    float3 camDirection = normalize(CameraPosition - input.worldPosiiton);
-    
-    // Specular Calculations
     // A specular scaling factor might come from a texture (just the red channel)
     float specScale = SurfaceTexture.Sample(BasicSampler, input.uv).r;
     
-    // Calculate the reflection of the INCOMING light direction
-    // using the durface normal (ensure both are normalized first
-    float3 reflection = reflect(lightDirection, input.normal);
-    
-    // Calculate cosine of the reflection and camera vector
-    // - saturate() ensures it's between 0 and 1
-    float RdotV = saturate(dot(reflection, camDirection));
-    
-    // Raise the that to a power equal to some "shininess"
-    // factor - try large numbers here (64, 200, etc.)
-    float3 specularTerm = pow(RdotV, SHININESS) * specScale *   // Initial specular term * scale
-    DirectionalLight1.Color * DirectionalLight1.Intensity *     // Colored by light's color
-    surfaceColor;                                               // Tinted by surface color
-    
-    // Build the final color
-    finalColor = ambientTerm + diffuseTerm + specularTerm;
-   
+    for (int i = 0; i < LightsCount; i++)
+    {
+        if (lights[i].Type == 0)
+        {
+            finalColor += DirectionalLight(lights[i], input.normal, surfaceColor, CameraPosition,
+                input.worldPosiiton, ambientTerm, specScale);
+        }
+        
+        if (lights[i].Type == 1)
+        {
+            finalColor += PointLight(lights[i], input.normal, surfaceColor, CameraPosition,
+                input.worldPosiiton, ambientTerm, specScale);
+        }
+        
+        if (lights[i].Type == 2)
+        {
+            finalColor += SpotLight(lights[i], input.normal, surfaceColor, CameraPosition,
+                input.worldPosiiton, ambientTerm, specScale);
+
+        }
+    }
     return float4(finalColor, 1);
 }

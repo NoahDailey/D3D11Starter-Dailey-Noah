@@ -35,14 +35,6 @@ Game::Game()
 	colorTints.push_back({ 0.0f, 0.0f, 1.0f, 1.0f });
 	offset = { 1.0f, 0.0f, 0.0f };
 
-	// Lighting variable initialization
-	ambientColor = XMFLOAT3(0.15f, 0.15f, 0.35f);
-	directionalLight1 = {};
-	directionalLight1.Type = 0;
-	directionalLight1.Direction = XMFLOAT3(1.0f, 0.0f, 0.0f);
-	directionalLight1.Color = XMFLOAT3(1, 0, 0);
-	directionalLight1.Intensity = 1.0f;
-
 	// Helper methods for loading shaders, creating some basic
 	// geometry to draw and some simple camera matrices.
 	//  - You'll be expanding and/or replacing these later
@@ -268,7 +260,7 @@ void Game::LoadShadersAndCreateGeometry()
 		gameObjects[5]->GetTransform()->MoveAbsolute(+6.0f, 0.0f, 0.0f);
 		gameObjects[6]->GetTransform()->MoveAbsolute(+9.0f, 0.0f, 0.0f);
 
-		// Old gameObjects
+		// Commented out old gameObjects
 		{
 			//// Create UV gameobjects
 		//gameObjects.push_back(std::make_shared<GameEntities>("UV Cube", cube, uvOutput));
@@ -302,6 +294,59 @@ void Game::LoadShadersAndCreateGeometry()
 		//gameObjects[19]->GetTransform()->MoveAbsolute(+6.0f, +6.0f, 0.0f);
 		//gameObjects[20]->GetTransform()->MoveAbsolute(+9.0f, +6.0f, 0.0f);
 		}
+
+		// Lighting variable initialization
+		ambientColor = XMFLOAT3(0.1f, 0.15f, 0.18f);
+
+		// Create the 5 lights that we want to have
+		Light redDirectionalLight = {};
+		redDirectionalLight.Type = 0;
+		redDirectionalLight.Direction = XMFLOAT3(1.0f, 0.0f, 0.5f);
+		redDirectionalLight.Color = XMFLOAT3(1.0f, 0.0f, 0.0f);
+		redDirectionalLight.Intensity = 1.0f;
+
+		Light greenDirectionalLight = {};
+		greenDirectionalLight.Type = 0;
+		greenDirectionalLight.Direction = XMFLOAT3(-0.1f, -1.0f, 0.0f);
+		greenDirectionalLight.Color = XMFLOAT3(0.0f, 1.0f, 0.0f);
+		greenDirectionalLight.Intensity = 1.0f;
+
+		Light blueDirectionalLight = {};
+		blueDirectionalLight.Type = 0;
+		blueDirectionalLight.Direction = XMFLOAT3(-1.0f, 1.0f, -0.5f);
+		blueDirectionalLight.Color = XMFLOAT3(0.0f, 0.0f, 1.0f);
+		blueDirectionalLight.Intensity = 1.0f;
+
+		Light whitePointLight1 = {};
+		whitePointLight1.Type = 1;
+		whitePointLight1.Range = 10;
+		whitePointLight1.Position = XMFLOAT3(-1.5f, 0.0f, 0.0f);
+		whitePointLight1.Color = XMFLOAT3(1.0f, 1.0f, 1.0f);
+		whitePointLight1.Intensity = 1.0f;
+
+		Light whitePointLight2 = {};
+		whitePointLight2.Type = 1;
+		whitePointLight2.Range = 10;
+		whitePointLight2.Position = XMFLOAT3(1.5f, 0.0f, 0.0f);
+		whitePointLight2.Color = XMFLOAT3(1.0f, 1.0f, 1.0f);
+		whitePointLight2.Intensity = 1.0f;
+
+		Light blueSpotLight = {};
+		blueSpotLight.Type = 2;
+		blueSpotLight.Range = 10;
+		blueSpotLight.Direction = XMFLOAT3(0.0f, -1.0f, 0.0f);
+		blueSpotLight.Position = XMFLOAT3(6.0f, 1.5f, 0.0f);
+		blueSpotLight.Color = XMFLOAT3(0.0f, 0.0f, 1.0f);
+		blueSpotLight.Intensity = 1.0f;
+		blueSpotLight.SpotInnerAngle = 25.0f * (XM_PI / 180);
+		blueSpotLight.SpotOuterAngle = 40.0f * (XM_PI / 180);
+
+		lights.push_back(redDirectionalLight);
+		lights.push_back(greenDirectionalLight);
+		lights.push_back(blueDirectionalLight);
+		lights.push_back(whitePointLight1);
+		lights.push_back(whitePointLight2);
+		lights.push_back(blueSpotLight);
 	}
 }
 
@@ -464,6 +509,29 @@ void Game::ImGuiCreate(float deltaTime)
 				ImGui::PopID();
 			}
 		}
+
+		// Create a new menu for Materials and Textures
+		if (ImGui::CollapsingHeader("Light Controls")) {
+			ImGui::ColorEdit3("Ambient Color", &ambientColor.x);
+			// Display the information for each individual light
+			unsigned int index = 0;
+			for (int i = 0; i < lights.size(); i++) {
+				std::string name = "Light " + std::to_string(i + 1);
+				const char* treeNodeName = name.c_str();
+				ImGui::PushID(index);
+				if (ImGui::TreeNode(treeNodeName)) {
+					// Add some basic information that can be changed in the debug menu
+					XMFLOAT3 tempColor = lights[i].Color;
+					float tempIntensity = lights[i].Intensity;
+					ImGui::ColorEdit3("Light Color", &tempColor.x);
+					ImGui::DragFloat("Light Intensity", &tempIntensity, 0.01f);
+					lights[i].Color = tempColor;
+					lights[i].Intensity = tempIntensity;
+					ImGui::TreePop();
+				}
+				ImGui::PopID();
+			}
+		} 
 	}
 	ImGui::End();
 }
@@ -584,6 +652,7 @@ void Game::Draw(float deltaTime, float totalTime)
 	// - These things should happen ONCE PER FRAME
 	// - At the beginning of Game::Draw() before drawing *anything*
 	// Clear the back buffer (erase what's on screen) and depth buffer
+
 	Graphics::Context->ClearRenderTargetView(Graphics::BackBufferRTV.Get(),	&backgroundColor.x);
 	Graphics::Context->ClearDepthStencilView(Graphics::DepthBufferDSV.Get(), D3D11_CLEAR_DEPTH, 1.0f, 0);
 
@@ -610,13 +679,13 @@ void Game::Draw(float deltaTime, float totalTime)
 
 		// Set the data for the Pixel Shader constant buffer
 		PSExternalData psData{};
-		psData.ColorTint = XMFLOAT3(1.0f, 1.0f, 1.0f);
+		memcpy(&psData.Lights, &lights[0], sizeof(Light) * lights.size());
+		psData.LightsCount = (float)lights.size();
+		psData.AmbientColor = ambientColor;
+		psData.CameraPosition = cameras[activeCamera]->GetTransform()->GetPosition();
 		psData.UVScale = gameEntity->GetMaterial()->GetUVScale();
 		psData.UVOffset = gameEntity->GetMaterial()->GetUVOffset();
-		psData.TotalTime = totalTime;
-		memcpy(&psData.DirectionalLight1, &directionalLight1, sizeof(Light));
-		psData.CameraPosition = cameras[activeCamera]->GetTransform()->GetPosition();
-		psData.AmbientColor = ambientColor;
+		psData.ColorTint = XMFLOAT3(1.0f, 1.0f, 1.0f);
 
 		FillAndBindNextConstantBuffer(
 			&psData,

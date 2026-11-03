@@ -6,6 +6,8 @@
 #define LIGHT_TYPE_POINT			1
 #define LIGHT_TYPE_SPOT				2
 
+#define MAX_NUMBER_LIGHTS			6
+
 struct Light {
 	int Type;						// Which kind of light? 0, 1, or 2 (see above)
 	DirectX::XMFLOAT3 Direction;	// Directional and Spot lights need a direction

@@ -2,6 +2,8 @@
 #include "DirectXMath.h"
 #include "Lights.h"
 
+#include <vector>
+
 /// <summary>
 /// A struct that contains data that will be sent and kept
 /// on the GPU for the Vertex Shader
@@ -20,15 +22,17 @@ struct VSExternalData
 /// </summary>
 struct PSExternalData
 {
-	DirectX::XMFLOAT2		UVScale;
-	DirectX::XMFLOAT2		UVOffset;
+	Light					Lights[MAX_NUMBER_LIGHTS];			// A test directional Light
 
-	float					TotalTime;			// The total time that has passed
+	float					LightsCount;
+	DirectX::XMFLOAT3		AmbientColor;		// Ambient color of the pixel
+
 	DirectX::XMFLOAT3		CameraPosition;		// Current position of the camera
-
-	Light					DirectionalLight1;	// A test directional Light
+	float					padding;
 
 	DirectX::XMFLOAT3		ColorTint;			// A tint color of a pixel
-	float					Padding;
-	DirectX::XMFLOAT3		AmbientColor;		// Ambient color of the pixel
+	float					morePadding;
+
+	DirectX::XMFLOAT2		UVScale;
+	DirectX::XMFLOAT2		UVOffset;
 };

@@ -82,5 +82,5 @@ private:
 
 	// Lighting required variables
 	DirectX::XMFLOAT3 ambientColor;
-	Light directionalLight1;
+	std::vector<Light> lights;
 };
