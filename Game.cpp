@@ -143,7 +143,7 @@ void Game::LoadShadersAndCreateGeometry()
 		//  - In other words, it describes how to interpret data (numbers) in a vertex buffer
 		//  - Doing this NOW because it requires a vertex shader's byte code to verify against!
 		//  - Luckily, we already have that loaded (the vertex shader blob above)
-		D3D11_INPUT_ELEMENT_DESC inputElements[3] = {};
+		D3D11_INPUT_ELEMENT_DESC inputElements[4] = {};
 
 		// Set up the first element - a position, which is 3 float values
 		inputElements[0].Format = DXGI_FORMAT_R32G32B32_FLOAT;				// Most formats are described as color channels; really it just means "Three 32-bit floats"
@@ -160,10 +160,15 @@ void Game::LoadShadersAndCreateGeometry()
 		inputElements[2].SemanticName = "NORMAL";							// Match our vertex shader input!
 		inputElements[2].AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT;	// After the previous element
 
+		// Set up the fourth element - a tangent, which is 3 more float values
+		inputElements[3].Format = DXGI_FORMAT_R32G32B32_FLOAT;				// 3x 32-bit floats
+		inputElements[3].SemanticName = "TANGENT";							// Match our vertex shader input!
+		inputElements[3].AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT;	// After the previous element
+
 		// Create the input layout, verifying our description against actual shader code
 		Graphics::Device->CreateInputLayout(
 			inputElements,							// An array of descriptions
-			3,										// How many elements in that array?
+			4,										// How many elements in that array?
 			vertexShaderBlob->GetBufferPointer(),	// Pointer to the code of a shader that uses this layout
 			vertexShaderBlob->GetBufferSize(),		// Size of the shader code that uses this layout
 			inputLayout.GetAddressOf());			// Address of the resulting ID3D11InputLayout pointer
@@ -186,41 +191,43 @@ void Game::LoadShadersAndCreateGeometry()
 
 		// Try to load in a texture
 		Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> woodSRV;
-		Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> stoneSRV;
-		Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> fabricSRV;
-		Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> mazeSRV;
+		Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> flatNormalsSRV;
+		Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> cobblestoneSRV;
+		Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> cobblestoneNormalsSRV;
+		Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> cushionSRV;
+		Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> cushionNormalsSRV;
+		Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> rocksSRV;
+		Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> rocksNormalsSRV;
 
 		CreateWICTextureFromFile(Graphics::Device.Get(), Graphics::Context.Get(), FixPath(L"../../Assets/Images/wood_floor.png").c_str(), 0, woodSRV.GetAddressOf());
-		CreateWICTextureFromFile(Graphics::Device.Get(), Graphics::Context.Get(), FixPath(L"../../Assets/Images/stone_path.png").c_str(), 0, stoneSRV.GetAddressOf());
-		CreateWICTextureFromFile(Graphics::Device.Get(), Graphics::Context.Get(), FixPath(L"../../Assets/Images/woven_fabric.png").c_str(), 0, fabricSRV.GetAddressOf());
-		CreateWICTextureFromFile(Graphics::Device.Get(), Graphics::Context.Get(), FixPath(L"../../Assets/Images/maze_texture.png").c_str(), 0, mazeSRV.GetAddressOf());
+		CreateWICTextureFromFile(Graphics::Device.Get(), Graphics::Context.Get(), FixPath(L"../../Assets/Images/flat_normals.png").c_str(), 0, flatNormalsSRV.GetAddressOf());
+		CreateWICTextureFromFile(Graphics::Device.Get(), Graphics::Context.Get(), FixPath(L"../../Assets/Images/cobblestone.png").c_str(), 0, cobblestoneSRV.GetAddressOf());
+		CreateWICTextureFromFile(Graphics::Device.Get(), Graphics::Context.Get(), FixPath(L"../../Assets/Images/cobblestone_normals.png").c_str(), 0, cobblestoneNormalsSRV.GetAddressOf());
+		CreateWICTextureFromFile(Graphics::Device.Get(), Graphics::Context.Get(), FixPath(L"../../Assets/Images/cushion.png").c_str(), 0, cushionSRV.GetAddressOf());
+		CreateWICTextureFromFile(Graphics::Device.Get(), Graphics::Context.Get(), FixPath(L"../../Assets/Images/cushion_normals.png").c_str(), 0, cushionNormalsSRV.GetAddressOf());
+		CreateWICTextureFromFile(Graphics::Device.Get(), Graphics::Context.Get(), FixPath(L"../../Assets/Images/rock.png").c_str(), 0, rocksSRV.GetAddressOf());
+		CreateWICTextureFromFile(Graphics::Device.Get(), Graphics::Context.Get(), FixPath(L"../../Assets/Images/rock_normals.png").c_str(), 0, rocksNormalsSRV.GetAddressOf());
 
 		// Create the materials that we will be using
 		std::shared_ptr<Material> woodFloor = std::make_shared<Material>("Wood Floor", colorTints[0], vertexShader, pixelShader, XMFLOAT2(2,2), XMFLOAT2(0.75,0.));
 		woodFloor->AddSampler(0, samplerState);
 		woodFloor->AddTextureSRV(0, woodSRV);
+		woodFloor->AddTextureSRV(1, flatNormalsSRV);
 
-		std::shared_ptr<Material> woodFloorGreen = std::make_shared<Material>("Green Wood Floor", colorTints[2], vertexShader, pixelShader, XMFLOAT2(5, 5), XMFLOAT2(0.5, 0.5));
-		woodFloorGreen->AddSampler(0, samplerState);
-		woodFloorGreen->AddTextureSRV(0, woodSRV);
+		std::shared_ptr<Material> cobblestone = std::make_shared<Material>("Cobblestone", colorTints[0], vertexShader, pixelShader, XMFLOAT2(1, 1), XMFLOAT2(0, 0));
+		cobblestone->AddSampler(0, samplerState);
+		cobblestone->AddTextureSRV(0, cobblestoneSRV);
+		cobblestone->AddTextureSRV(1, cobblestoneNormalsSRV);
 
-		std::shared_ptr<Material> stonePath = std::make_shared<Material>("Stone Path", colorTints[0], vertexShader, pixelShader, XMFLOAT2(1, 1), XMFLOAT2(0, 0));
-		stonePath->AddSampler(0, samplerState);
-		stonePath->AddTextureSRV(0, stoneSRV);
+		std::shared_ptr<Material> cushion = std::make_shared<Material>("Cobblestone", colorTints[0], vertexShader, pixelShader, XMFLOAT2(1, 1), XMFLOAT2(0, 0));
+		cushion->AddSampler(0, samplerState);
+		cushion->AddTextureSRV(0, cushionSRV);
+		cushion->AddTextureSRV(1, cushionNormalsSRV);
 
-		std::shared_ptr<Material> stonePathRed = std::make_shared<Material>("Red Stone Path", colorTints[1], vertexShader, pixelShader, XMFLOAT2(1, 1), XMFLOAT2(0, 0));
-		stonePathRed->AddSampler(0, samplerState);
-		stonePathRed->AddTextureSRV(0, stoneSRV);
-
-		std::shared_ptr<Material> woodMaze = std::make_shared<Material>("Wood Maze", colorTints[0], vertexShader, pixelShaderCombinedTexture, XMFLOAT2(1, 1), XMFLOAT2(0, 0));
-		woodMaze->AddSampler(0, samplerState);
-		woodMaze->AddTextureSRV(0, woodSRV);
-		woodMaze->AddTextureSRV(1, mazeSRV);
-
-		std::shared_ptr<Material> woodMazeBlue = std::make_shared<Material>("Blue Wood Maze", colorTints[3], vertexShader, pixelShaderCombinedTexture, XMFLOAT2(1, 1), XMFLOAT2(0, 0));
-		woodMazeBlue->AddSampler(0, samplerState);
-		woodMazeBlue->AddTextureSRV(0, woodSRV);
-		woodMazeBlue->AddTextureSRV(1, mazeSRV);
+		std::shared_ptr<Material> rocks = std::make_shared<Material>("Cobblestone", colorTints[0], vertexShader, pixelShader, XMFLOAT2(1, 1), XMFLOAT2(0, 0));
+		rocks->AddSampler(0, samplerState);
+		rocks->AddTextureSRV(0, rocksSRV);
+		rocks->AddTextureSRV(1, rocksNormalsSRV);
 
 		std::shared_ptr<Material> uvOutput = std::make_shared<Material>("UV Values", colorTints[0], vertexShader, pixelShaderUV, XMFLOAT2(1, 1), XMFLOAT2(0, 0));
 		uvOutput->AddSampler(0, samplerState);
@@ -229,7 +236,7 @@ void Game::LoadShadersAndCreateGeometry()
 		std::shared_ptr<Material> customOutput = std::make_shared<Material>("Custom", colorTints[0], vertexShader, pixelShaderCustom, XMFLOAT2(1, 1), XMFLOAT2(0, 0));
 		customOutput->AddSampler(0, samplerState);
 
-		materials.insert(materials.end(), { woodFloor, woodFloorGreen, stonePath, stonePathRed, woodMaze, woodMazeBlue, uvOutput, normalOutput, customOutput });
+		materials.insert(materials.end(), { woodFloor, cobblestone, cushion, rocks, uvOutput, normalOutput, customOutput });
 
 		// Create the various meshes that we need
 		std::shared_ptr<Mesh> cube = std::make_shared<Mesh>(FixPath("../../Assets/Meshes/cube.obj").c_str());
@@ -244,12 +251,12 @@ void Game::LoadShadersAndCreateGeometry()
 
 		// Create the gameObjects
 		// push back all of the premade and adjusted gameEntities
-		gameObjects.push_back(std::make_shared<GameEntities>("Cube", cube, woodFloor));
-		gameObjects.push_back(std::make_shared<GameEntities>("Sphere", sphere, woodFloor));
-		gameObjects.push_back(std::make_shared<GameEntities>("Cylinder", cylinder, woodFloor));
-		gameObjects.push_back(std::make_shared<GameEntities>("Helix", helix, woodFloor));
 		gameObjects.push_back(std::make_shared<GameEntities>("Torus", torus, woodFloor));
-		gameObjects.push_back(std::make_shared<GameEntities>("Quad", quad, woodFloor));
+		gameObjects.push_back(std::make_shared<GameEntities>("Cylinder", cylinder, rocks));
+		gameObjects.push_back(std::make_shared<GameEntities>("Cube", cube, cushion));
+		gameObjects.push_back(std::make_shared<GameEntities>("Sphere", sphere, cobblestone));
+		gameObjects.push_back(std::make_shared<GameEntities>("Helix", helix, cushion));
+		gameObjects.push_back(std::make_shared<GameEntities>("Quad", quad, rocks));
 		gameObjects.push_back(std::make_shared<GameEntities>("Quad Double Sided", quadDoubleSided, woodFloor));
 
 		// Adjust positions
@@ -259,41 +266,6 @@ void Game::LoadShadersAndCreateGeometry()
 		gameObjects[4]->GetTransform()->MoveAbsolute(+3.0f, 0.0f, 0.0f);
 		gameObjects[5]->GetTransform()->MoveAbsolute(+6.0f, 0.0f, 0.0f);
 		gameObjects[6]->GetTransform()->MoveAbsolute(+9.0f, 0.0f, 0.0f);
-
-		// Commented out old gameObjects
-		{
-			//// Create UV gameobjects
-		//gameObjects.push_back(std::make_shared<GameEntities>("UV Cube", cube, uvOutput));
-		//gameObjects.push_back(std::make_shared<GameEntities>("UV Sphere", sphere, uvOutput));
-		//gameObjects.push_back(std::make_shared<GameEntities>("UV Cylinder", cylinder, uvOutput));
-		//gameObjects.push_back(std::make_shared<GameEntities>("UV Helix", helix, uvOutput));
-		//gameObjects.push_back(std::make_shared<GameEntities>("UV Torus", torus, uvOutput));
-		//gameObjects.push_back(std::make_shared<GameEntities>("UV Quad", quad, uvOutput));
-		//gameObjects.push_back(std::make_shared<GameEntities>("UV Quad Double Sided", quadDoubleSided, uvOutput));
-		//// Create Normal Value gameobjects
-		//gameObjects.push_back(std::make_shared<GameEntities>("Normal Cube", cube, normalOutput));
-		//gameObjects.push_back(std::make_shared<GameEntities>("Normal Sphere", sphere, normalOutput));
-		//gameObjects.push_back(std::make_shared<GameEntities>("Normal Cylinder", cylinder, normalOutput));
-		//gameObjects.push_back(std::make_shared<GameEntities>("Normal Helix", helix, normalOutput));
-		//gameObjects.push_back(std::make_shared<GameEntities>("Normal Torus", torus, normalOutput));
-		//gameObjects.push_back(std::make_shared<GameEntities>("Normal Quad", quad, normalOutput));
-		//gameObjects.push_back(std::make_shared<GameEntities>("Normal Quad Double Sided", quadDoubleSided, normalOutput));
-
-		//gameObjects[7]->GetTransform()->MoveAbsolute(-9.0f, +3.0f, 0.0f);
-		//gameObjects[8]->GetTransform()->MoveAbsolute(-6.0f, +3.0f, 0.0f);
-		//gameObjects[9]->GetTransform()->MoveAbsolute(-3.0f, +3.0f, 0.0f);
-		//gameObjects[10]->GetTransform()->MoveAbsolute(0.0f, +3.0f, 0.0f);
-		//gameObjects[11]->GetTransform()->MoveAbsolute(+3.0f, +3.0f, 0.0f);
-		//gameObjects[12]->GetTransform()->MoveAbsolute(+6.0f, +3.0f, 0.0f);
-		//gameObjects[13]->GetTransform()->MoveAbsolute(+9.0f, +3.0f, 0.0f);
-		//gameObjects[14]->GetTransform()->MoveAbsolute(-9.0f, +6.0f, 0.0f);
-		//gameObjects[15]->GetTransform()->MoveAbsolute(-6.0f, +6.0f, 0.0f);
-		//gameObjects[16]->GetTransform()->MoveAbsolute(-3.0f, +6.0f, 0.0f);
-		//gameObjects[17]->GetTransform()->MoveAbsolute(0.0f, +6.0f, 0.0f);
-		//gameObjects[18]->GetTransform()->MoveAbsolute(+3.0f, +6.0f, 0.0f);
-		//gameObjects[19]->GetTransform()->MoveAbsolute(+6.0f, +6.0f, 0.0f);
-		//gameObjects[20]->GetTransform()->MoveAbsolute(+9.0f, +6.0f, 0.0f);
-		}
 
 		// Lighting variable initialization
 		ambientColor = XMFLOAT3(0.1f, 0.15f, 0.18f);
@@ -417,13 +389,6 @@ void Game::ImGuiCreate(float deltaTime)
 				ImGui::StyleColorsDark();
 			}
 		}
-
-		//// Collapsing header for changing the tint and offset of the meshes
-		//if (ImGui::CollapsingHeader("Vertex Shaders")) 
-		//{
-		//	ImGui::ColorEdit4("Color Tint", &colorTints[0].x);
-		//	ImGui::SliderFloat3("Mesh Offset", &offset.x, -1.0f, 1.0f);
-		//}
 
 		// Create a collapsing header for the purpose of viewing Mesh information
 		if (ImGui::CollapsingHeader("3D Mesh Details")) {
@@ -635,10 +600,8 @@ void Game::Update(float deltaTime, float totalTime)
 		entity->GetTransform()->Rotate(0.0f, deltaTime, 0.0f);
 	}
 
-	float scaleValue = (float)sin(totalTime) * 0.25f + 1.0f;
-	gameObjects[0]->GetTransform()->SetScale(scaleValue, scaleValue, scaleValue);
-	//gameObjects[7]->GetTransform()->SetScale(scaleValue, scaleValue, scaleValue);
-	//gameObjects[14]->GetTransform()->SetScale(scaleValue, scaleValue, scaleValue);
+	// Scaling calue that can be used later
+	//float scaleValue = (float)sin(totalTime) * 0.25f + 1.0f;
 
 	cameras[activeCamera]->Update(deltaTime);
 }

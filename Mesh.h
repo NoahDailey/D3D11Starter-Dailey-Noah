@@ -22,6 +22,7 @@ private:
 	// Char pointer for the name
 	const char* name;
 
+	void CalculateTangents(Vertex* verts, int numVerts, unsigned int* indices, int numIndices);
 	void CreateVertexBuffer(Vertex* vertices, unsigned int verticesCount);
 	void CreateIndexBuffer(unsigned int* indices, unsigned int indicesCount);
 public:

@@ -4,10 +4,10 @@
 // on the GPU to the Vertex Shader
 cbuffer ExternalData : register(b0)
 {
-    float4x4  World;				// A change in transform
-    float4x4  ViewMatrix;			// A camera view matrix
-    float4x4  ProjectionMatrix;		// A camera projection matrix
-    float4x4  WorldInvTranspose;	// An inverse of the world transform
+    float4x4	World;				// A change in transform
+    float4x4	ViewMatrix;			// A camera view matrix
+    float4x4	ProjectionMatrix;	// A camera projection matrix
+    float4x4	WorldInvTranspose;	// An inverse of the world transform
 }
 
 // Struct representing a single vertex worth of data
@@ -25,6 +25,7 @@ struct VertexShaderInput
 	float3 localPosition	: POSITION;     // XYZ position
 	float2 uv				: TEXCOORD;		// RG uv
     float3 normal			: NORMAL;		// RGB normal
+    float3 tangent			: TANGENT;		// A line across teh vertex
 };
 
 // --------------------------------------------------------
@@ -53,6 +54,7 @@ VertexToPixel main( VertexShaderInput input )
     output.uv = input.uv;
     output.normal = mul((float3x3) WorldInvTranspose, input.normal);
     output.worldPosiiton = mul(World, float4(input.localPosition, 1)).xyz;
+    output.tangent = mul((float3x3) World, input.tangent);
 
 	// Whatever we return will make its way through the pipeline to the
 	// next programmable stage we're using (the pixel shader for now)

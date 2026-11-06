@@ -56,6 +56,14 @@ float3 DirectionalLight(Light light, float3 normal, float3 surfaceColor, float3 
     float3 specularTerm = Specular(specScale, camDirection, lightDirection,
         normal, light.Color, light.Intensity) * surfaceColor;
     
+    // Cut the specular if the diffuse contribution is zero
+    // - any() returns 1 if any component of the param is non-zero
+    // - In other words:
+    // - If the diffuse amount is 0, any(diffuse) returns 0
+    // - If the diffuse amount is != 0, any(diffuse) returns 1
+    // - So when diffuse is 0, specular becomes 0
+    specularTerm *= any(diffuseTerm);
+    
     return ambient + diffuseTerm + specularTerm;
 }
 
@@ -68,6 +76,14 @@ float3 PointLight(Light light, float3 normal, float3 surfaceColor, float3 camera
     
     float3 specularTerm = Specular(specScale, camDirection, lightDirection,
         normal, light.Color, light.Intensity) * surfaceColor;
+    
+    // Cut the specular if the diffuse contribution is zero
+    // - any() returns 1 if any component of the param is non-zero
+    // - In other words:
+    // - If the diffuse amount is 0, any(diffuse) returns 0
+    // - If the diffuse amount is != 0, any(diffuse) returns 1
+    // - So when diffuse is 0, specular becomes 0
+    specularTerm *= any(diffuseTerm);
     
     return (ambient + diffuseTerm + specularTerm) * Attenuate(light, worldPosition);
 }

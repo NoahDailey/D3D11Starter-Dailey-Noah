@@ -20,7 +20,8 @@ cbuffer ExternalData : register(b0)
     float2 UVOffset;
 }
 
-Texture2D SurfaceTexture  : register(t0); // "t" registers for textures
+Texture2D SurfaceTexture : register(t0); // "t" registers for textures
+Texture2D NormalTexture : register(t1);
 SamplerState BasicSampler : register(s0); // "s" registers for samplers
 
 // --------------------------------------------------------
@@ -34,8 +35,9 @@ SamplerState BasicSampler : register(s0); // "s" registers for samplers
 // --------------------------------------------------------
 float4 main(VertexToPixel input) : SV_TARGET
 {
-    // Determine the proper normal values
+    // Determine the proper normal and tangent values
     input.normal = normalize(input.normal);
+    input.tangent = normalize(input.tangent - dot(input.tangent, input.normal) * input.normal);
     
     // Set the uv scale and offset appropriately for textures
     input.uv = input.uv * UVScale + UVOffset;
@@ -43,6 +45,13 @@ float4 main(VertexToPixel input) : SV_TARGET
     // Determine the surface and texture color of the pixel
     float3 surfaceColor = SurfaceTexture.Sample(BasicSampler, input.uv).rgb;
     surfaceColor *= ColorTint;
+    
+    // Determine how to get the normal map
+    float3 unpackedNormals = NormalTexture.Sample(BasicSampler, input.uv).rgb * 2 - 1;
+    float3 bitangent = cross(input.tangent, input.normal);
+    
+    float3x3 TBN = float3x3(input.tangent, bitangent, input.normal);
+    float3 finalNormals = mul(unpackedNormals, TBN);
     
     // Lighting calculations
     // Value to be used as the final color applied to the material
@@ -58,19 +67,19 @@ float4 main(VertexToPixel input) : SV_TARGET
     {
         if (lights[i].Type == 0)
         {
-            finalColor += DirectionalLight(lights[i], input.normal, surfaceColor, CameraPosition,
+            finalColor += DirectionalLight(lights[i], finalNormals, surfaceColor, CameraPosition,
                 input.worldPosiiton, ambientTerm, specScale);
         }
         
         if (lights[i].Type == 1)
         {
-            finalColor += PointLight(lights[i], input.normal, surfaceColor, CameraPosition,
+            finalColor += PointLight(lights[i], finalNormals, surfaceColor, CameraPosition,
                 input.worldPosiiton, ambientTerm, specScale);
         }
         
         if (lights[i].Type == 2)
         {
-            finalColor += SpotLight(lights[i], input.normal, surfaceColor, CameraPosition,
+            finalColor += SpotLight(lights[i], finalNormals, surfaceColor, CameraPosition,
                 input.worldPosiiton, ambientTerm, specScale);
 
         }
