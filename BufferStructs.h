@@ -17,6 +17,16 @@ struct VSExternalData
 };
 
 /// <summary>
+/// A struct that contains data that will sent sent and kept
+/// on the GPU for the Skybox Vertex Shader
+/// </summary>
+struct SkyVSData
+{
+	DirectX::XMFLOAT4X4 ViewMatrix;
+	DirectX::XMFLOAT4X4 ProjectionMatrix;
+};
+
+/// <summary>
 /// A struct that contains data that will be sent and kept
 /// on the GPU for the Pixel Shader
 /// </summary>

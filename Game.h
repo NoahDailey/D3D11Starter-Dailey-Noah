@@ -4,6 +4,7 @@
 #include "Camera.h"
 #include "Material.h"
 #include "Lights.h"
+#include "Sky.h"
 
 #include <d3d11.h>
 #include <d3d11shadertracing.h>
@@ -32,6 +33,7 @@ private:
 	void LoadShadersAndCreateGeometry();
 	void ImGuiCreate(float deltaTime);
 	Microsoft::WRL::ComPtr<ID3D11PixelShader> LoadPixelShader(const wchar_t* filePath);
+	Microsoft::WRL::ComPtr<ID3D11VertexShader> LoadVertexShader(const wchar_t* filePath);
 	void FillAndBindNextConstantBuffer(void* data, unsigned int dataSizeInBytes, D3D11_SHADER_TYPE shaderType, unsigned int registerSlot);
 
 	// Note the usage of ComPtr below
@@ -46,6 +48,11 @@ private:
 	Microsoft::WRL::ComPtr<ID3D11PixelShader> pixelShaderNormal;
 	Microsoft::WRL::ComPtr<ID3D11PixelShader> pixelShaderCustom;
 	Microsoft::WRL::ComPtr<ID3D11PixelShader> pixelShaderCombinedTexture;
+
+	// Skybox related content
+	std::shared_ptr<Sky> skybox;
+	Microsoft::WRL::ComPtr<ID3D11VertexShader> skyVertexShader;
+	Microsoft::WRL::ComPtr<ID3D11PixelShader> skyPixelShader;
 
 	Microsoft::WRL::ComPtr<ID3D11InputLayout> inputLayout;
 

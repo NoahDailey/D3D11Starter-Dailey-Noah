@@ -48,6 +48,38 @@ Game::Game()
 	// Ensure the pipeline knows how to interpret all the numbers stored in
 	// the vertex buffer. For this course, all of your vertices will probably
 	// have the same layout, so we can just set this once at startup.
+	D3D11_INPUT_ELEMENT_DESC inputElements[4] = {};
+
+	// Set up the first element - a position, which is 3 float values
+	inputElements[0].Format = DXGI_FORMAT_R32G32B32_FLOAT;				// Most formats are described as color channels; really it just means "Three 32-bit floats"
+	inputElements[0].SemanticName = "POSITION";							// This is "POSITION" - needs to match the semantics in our vertex shader input!
+	inputElements[0].AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT;	// How far into the vertex is this?  Assume it's after the previous element
+
+	// Set up the second element - uv values, which is 2 more float values
+	inputElements[1].Format = DXGI_FORMAT_R32G32_FLOAT;					// 2x 32-bit floats
+	inputElements[1].SemanticName = "TEXCOORD";							// Match our vertex shader input!
+	inputElements[1].AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT;	// After the previous element
+
+	// Set up the third element - normal values, which is 3 more float values
+	inputElements[2].Format = DXGI_FORMAT_R32G32B32_FLOAT;				// 3x 32-bit floats
+	inputElements[2].SemanticName = "NORMAL";							// Match our vertex shader input!
+	inputElements[2].AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT;	// After the previous element
+
+	// Set up the fourth element - a tangent, which is 3 more float values
+	inputElements[3].Format = DXGI_FORMAT_R32G32B32_FLOAT;				// 3x 32-bit floats
+	inputElements[3].SemanticName = "TANGENT";							// Match our vertex shader input!
+	inputElements[3].AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT;	// After the previous element
+
+	// Create the input layout, verifying our description against actual shader code
+	ID3DBlob* vertexShaderBlob;
+	D3DReadFileToBlob(FixPath(L"VertexShader.cso").c_str(), &vertexShaderBlob);
+	Graphics::Device->CreateInputLayout(
+		inputElements,							// An array of descriptions
+		4,										// How many elements in that array?
+		vertexShaderBlob->GetBufferPointer(),	// Pointer to the code of a shader that uses this layout
+		vertexShaderBlob->GetBufferSize(),		// Size of the shader code that uses this layout
+		inputLayout.GetAddressOf());			// Address of the resulting ID3D11InputLayout pointer
+
 	Graphics::Context->IASetInputLayout(inputLayout.Get());
 
 	// Create the Ring Constant Buffer for easier use 
@@ -112,24 +144,9 @@ void Game::LoadShadersAndCreateGeometry()
 {	
 	// Load Shaders
 	{
-		// BLOBs (or Binary Large OBjects) for reading raw data from external files
-	// - This is a simplified way of handling big chunks of external data
-	// - Literally just a big array of bytes read from a file
-	// Load the only Vertex Shader
-		ID3DBlob* vertexShaderBlob;
-
-		// Read our compiled shader code files into blobs
-		// - Essentially just "open the file and plop its contents here"
-		// - Uses the custom FixPath() helper from Helpers.h to ensure relative paths
-		// - Note the "L" before the string - this tells the compiler the string uses wide characters
-		D3DReadFileToBlob(FixPath(L"VertexShader.cso").c_str(), &vertexShaderBlob);
-
-		// Create the actual Direct3D shaders on the GPU
-		Graphics::Device->CreateVertexShader(
-			vertexShaderBlob->GetBufferPointer(),	// Get a pointer to the blob's contents
-			vertexShaderBlob->GetBufferSize(),		// How big is that data?
-			0,										// No classes in this shader
-			vertexShader.GetAddressOf());			// The address of the ID3D11VertexShader pointer
+		// Load the Vertex Shaders via a helper method
+		vertexShader = LoadVertexShader(FixPath(L"VertexShader.cso").c_str());
+		skyVertexShader = LoadVertexShader(FixPath(L"SkyVertexShader.cso").c_str());
 
 		// Load the Pixel Shaders via a helper method to make it easier
 		pixelShader = LoadPixelShader(FixPath(L"PixelShader.cso").c_str());
@@ -137,41 +154,7 @@ void Game::LoadShadersAndCreateGeometry()
 		pixelShaderNormal = LoadPixelShader(FixPath(L"DebugNormalsPS.cso").c_str());
 		pixelShaderCustom = LoadPixelShader(FixPath(L"CustomPS.cso").c_str());
 		pixelShaderCombinedTexture = LoadPixelShader(FixPath(L"CombinedTexturePS.cso").c_str());
-
-		// Create an input layout 
-		//  - This describes the layout of data sent to a vertex shader
-		//  - In other words, it describes how to interpret data (numbers) in a vertex buffer
-		//  - Doing this NOW because it requires a vertex shader's byte code to verify against!
-		//  - Luckily, we already have that loaded (the vertex shader blob above)
-		D3D11_INPUT_ELEMENT_DESC inputElements[4] = {};
-
-		// Set up the first element - a position, which is 3 float values
-		inputElements[0].Format = DXGI_FORMAT_R32G32B32_FLOAT;				// Most formats are described as color channels; really it just means "Three 32-bit floats"
-		inputElements[0].SemanticName = "POSITION";							// This is "POSITION" - needs to match the semantics in our vertex shader input!
-		inputElements[0].AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT;	// How far into the vertex is this?  Assume it's after the previous element
-
-		// Set up the second element - uv values, which is 2 more float values
-		inputElements[1].Format = DXGI_FORMAT_R32G32_FLOAT;					// 2x 32-bit floats
-		inputElements[1].SemanticName = "TEXCOORD";							// Match our vertex shader input!
-		inputElements[1].AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT;	// After the previous element
-
-		// Set up the third element - normal values, which is 3 more float values
-		inputElements[2].Format = DXGI_FORMAT_R32G32B32_FLOAT;				// 3x 32-bit floats
-		inputElements[2].SemanticName = "NORMAL";							// Match our vertex shader input!
-		inputElements[2].AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT;	// After the previous element
-
-		// Set up the fourth element - a tangent, which is 3 more float values
-		inputElements[3].Format = DXGI_FORMAT_R32G32B32_FLOAT;				// 3x 32-bit floats
-		inputElements[3].SemanticName = "TANGENT";							// Match our vertex shader input!
-		inputElements[3].AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT;	// After the previous element
-
-		// Create the input layout, verifying our description against actual shader code
-		Graphics::Device->CreateInputLayout(
-			inputElements,							// An array of descriptions
-			4,										// How many elements in that array?
-			vertexShaderBlob->GetBufferPointer(),	// Pointer to the code of a shader that uses this layout
-			vertexShaderBlob->GetBufferSize(),		// Size of the shader code that uses this layout
-			inputLayout.GetAddressOf());			// Address of the resulting ID3D11InputLayout pointer
+		skyPixelShader = LoadPixelShader(FixPath(L"SkyPixelShader.cso").c_str());
 	}
 
 	// Create Geometry
@@ -248,6 +231,12 @@ void Game::LoadShadersAndCreateGeometry()
 		std::shared_ptr<Mesh> quadDoubleSided = std::make_shared<Mesh>(FixPath("../../Assets/Meshes/quad_double_sided.obj").c_str());
 
 		meshes.insert(meshes.end(), { cube, sphere, cylinder, helix, torus, quad, quadDoubleSided });
+
+		// Create the skybox from the made data
+		skybox = std::make_shared<Sky>(samplerState, cube, skyPixelShader, skyVertexShader, 
+			FixPath(L"../../Assets/Images/right.png").c_str(), FixPath(L"../../Assets/Images/left.png").c_str(),
+			FixPath(L"../../Assets/Images/up.png").c_str(), FixPath(L"../../Assets/Images/down.png").c_str(),
+			FixPath(L"../../Assets/Images/front.png").c_str(), FixPath(L"../../Assets/Images/back.png").c_str());
 
 		// Create the gameObjects
 		// push back all of the premade and adjusted gameEntities
@@ -515,6 +504,20 @@ Microsoft::WRL::ComPtr<ID3D11PixelShader> Game::LoadPixelShader(const wchar_t* f
 	return tempShader;
 }
 
+Microsoft::WRL::ComPtr<ID3D11VertexShader> Game::LoadVertexShader(const wchar_t* filePath)
+{
+	ID3DBlob* tempShaderBlob;
+	D3DReadFileToBlob(filePath, &tempShaderBlob);
+	Microsoft::WRL::ComPtr<ID3D11VertexShader> tempShader;
+	Graphics::Device->CreateVertexShader(
+		tempShaderBlob->GetBufferPointer(),	// Pointer to blob's contents
+		tempShaderBlob->GetBufferSize(),	// How big is that data?
+		0,									// No classes in this shader
+		tempShader.GetAddressOf());			// Address of the ID3D11PixelShader pointer
+
+	return tempShader;
+}
+
 void Game::FillAndBindNextConstantBuffer(void* data, unsigned int dataSizeInBytes, D3D11_SHADER_TYPE shaderType, unsigned int registerSlot)
 {
 	// How much space will we actually need? Each chunk must be
@@ -659,6 +662,20 @@ void Game::Draw(float deltaTime, float totalTime)
 		// Finally draw the item
 		gameEntity->Draw();
 	}
+
+	// Prepare to Draw the Skybox
+	// Set the data for the Vertex Shader constant buffer
+	SkyVSData skyVSData{};
+	skyVSData.ViewMatrix = cameras[activeCamera]->GetViewMatrix();
+	skyVSData.ProjectionMatrix = cameras[activeCamera]->GetProjectionMatrix();
+
+	FillAndBindNextConstantBuffer(
+		&skyVSData,
+		sizeof(SkyVSData),
+		D3D11_VERTEX_SHADER,
+		0);
+
+	skybox->Draw();
 
 	// Frame END
 	// - These should happen exactly ONCE PER FRAME
