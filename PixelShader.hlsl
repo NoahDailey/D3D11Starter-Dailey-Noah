@@ -59,6 +59,7 @@ float4 main(VertexToPixel input) : SV_TARGET
     
     // Ambiant term
     float3 ambientTerm = AmbientColor * surfaceColor;
+    finalColor += ambientTerm;
     
     // A specular scaling factor might come from a texture (just the red channel)
     float specScale = SurfaceTexture.Sample(BasicSampler, input.uv).r;
@@ -68,19 +69,19 @@ float4 main(VertexToPixel input) : SV_TARGET
         if (lights[i].Type == 0)
         {
             finalColor += DirectionalLight(lights[i], finalNormals, surfaceColor, CameraPosition,
-                input.worldPosiiton, ambientTerm, specScale);
+                input.worldPosiiton, specScale);
         }
         
         if (lights[i].Type == 1)
         {
             finalColor += PointLight(lights[i], finalNormals, surfaceColor, CameraPosition,
-                input.worldPosiiton, ambientTerm, specScale);
+                input.worldPosiiton, specScale);
         }
         
         if (lights[i].Type == 2)
         {
             finalColor += SpotLight(lights[i], finalNormals, surfaceColor, CameraPosition,
-                input.worldPosiiton, ambientTerm, specScale);
+                input.worldPosiiton, specScale);
 
         }
     }

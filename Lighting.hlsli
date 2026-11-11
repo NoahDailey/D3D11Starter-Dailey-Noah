@@ -46,7 +46,7 @@ float Attenuate(Light light, float3 worldPos)
 
 
 /* LIGTH SPECIFIC CALCULATION METHODS */
-float3 DirectionalLight(Light light, float3 normal, float3 surfaceColor, float3 cameraPosition, float3 worldPosition, float3 ambient, float specScale)
+float3 DirectionalLight(Light light, float3 normal, float3 surfaceColor, float3 cameraPosition, float3 worldPosition, float specScale)
 {
     float3 lightDirection = normalize(light.Direction);
     float3 camDirection = normalize(cameraPosition - worldPosition);
@@ -64,10 +64,10 @@ float3 DirectionalLight(Light light, float3 normal, float3 surfaceColor, float3 
     // - So when diffuse is 0, specular becomes 0
     specularTerm *= any(diffuseTerm);
     
-    return ambient + diffuseTerm + specularTerm;
+    return diffuseTerm + specularTerm;
 }
 
-float3 PointLight(Light light, float3 normal, float3 surfaceColor, float3 cameraPosition, float3 worldPosition, float3 ambient, float specScale)
+float3 PointLight(Light light, float3 normal, float3 surfaceColor, float3 cameraPosition, float3 worldPosition, float specScale)
 {
     float3 lightDirection = normalize(worldPosition - light.Position);
     float3 camDirection = normalize(cameraPosition - worldPosition);
@@ -85,12 +85,12 @@ float3 PointLight(Light light, float3 normal, float3 surfaceColor, float3 camera
     // - So when diffuse is 0, specular becomes 0
     specularTerm *= any(diffuseTerm);
     
-    return (ambient + diffuseTerm + specularTerm) * Attenuate(light, worldPosition);
+    return (diffuseTerm + specularTerm) * Attenuate(light, worldPosition);
 }
 
-float3 SpotLight(Light light, float3 normal, float3 surfaceColor, float3 cameraPosition, float3 worldPosition, float3 ambient, float specScale)
+float3 SpotLight(Light light, float3 normal, float3 surfaceColor, float3 cameraPosition, float3 worldPosition, float specScale)
 {
-    float3 pointLight = PointLight(light, normal, surfaceColor, cameraPosition, worldPosition, ambient, specScale);
+    float3 pointLight = PointLight(light, normal, surfaceColor, cameraPosition, worldPosition, specScale);
     
     float3 lightToPixel = normalize(worldPosition - light.Position);
     float pixelAngle = saturate(dot(lightToPixel, light.Direction));
