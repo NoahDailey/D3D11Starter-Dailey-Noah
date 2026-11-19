@@ -29,6 +29,7 @@ Game::Game()
 	backgroundColor = { 0.4f, 0.6f, 0.75f, 1.0f };
 	demoVisible = false;
 	menuStyle = 1;
+	drawSkybox = true;
 	colorTints.push_back({ 1.0f,1.0f,1.0f,1.0f });
 	colorTints.push_back({ 1.0f, 0.0f, 0.0f, 1.0f});
 	colorTints.push_back({ 0.0f, 1.0f, 0.0f, 1.0f });
@@ -260,54 +261,27 @@ void Game::LoadShadersAndCreateGeometry()
 		ambientColor = XMFLOAT3(0.1f, 0.15f, 0.18f);
 
 		// Create the 5 lights that we want to have
-		Light redDirectionalLight = {};
-		redDirectionalLight.Type = 0;
-		redDirectionalLight.Direction = XMFLOAT3(1.0f, 0.0f, 0.5f);
-		redDirectionalLight.Color = XMFLOAT3(1.0f, 0.0f, 0.0f);
-		redDirectionalLight.Intensity = 1.0f;
+		Light directionalLight1 = {};
+		directionalLight1.Type = 0;
+		directionalLight1.Direction = XMFLOAT3(10.0f, -20.0f, 10.0f);
+		directionalLight1.Color = XMFLOAT3(1.0f, 1.0f, 1.0f);
+		directionalLight1.Intensity = 1.0f;
 
-		Light greenDirectionalLight = {};
-		greenDirectionalLight.Type = 0;
-		greenDirectionalLight.Direction = XMFLOAT3(-0.1f, -1.0f, 0.0f);
-		greenDirectionalLight.Color = XMFLOAT3(0.0f, 1.0f, 0.0f);
-		greenDirectionalLight.Intensity = 1.0f;
+		Light directionalLight2 = {};
+		directionalLight2.Type = 0;
+		directionalLight2.Direction = XMFLOAT3(0.0f, -50.0f, 0.0f);
+		directionalLight2.Color = XMFLOAT3(1.0f, 1.0f, 1.0f);
+		directionalLight2.Intensity = 0.1f;
 
-		Light blueDirectionalLight = {};
-		blueDirectionalLight.Type = 0;
-		blueDirectionalLight.Direction = XMFLOAT3(-1.0f, 1.0f, -0.5f);
-		blueDirectionalLight.Color = XMFLOAT3(0.0f, 0.0f, 1.0f);
-		blueDirectionalLight.Intensity = 1.0f;
+		Light directionalLight3 = {};
+		directionalLight3.Type = 0;
+		directionalLight3.Direction = XMFLOAT3(-5.0f, 0.0f, -5.0f);
+		directionalLight3.Color = XMFLOAT3(1.0f, 1.0f, 1.0f);
+		directionalLight3.Intensity = 0.1f;
 
-		Light whitePointLight1 = {};
-		whitePointLight1.Type = 1;
-		whitePointLight1.Range = 10;
-		whitePointLight1.Position = XMFLOAT3(-1.5f, 0.0f, 0.0f);
-		whitePointLight1.Color = XMFLOAT3(1.0f, 1.0f, 1.0f);
-		whitePointLight1.Intensity = 1.0f;
-
-		Light whitePointLight2 = {};
-		whitePointLight2.Type = 1;
-		whitePointLight2.Range = 10;
-		whitePointLight2.Position = XMFLOAT3(1.5f, 0.0f, 0.0f);
-		whitePointLight2.Color = XMFLOAT3(1.0f, 1.0f, 1.0f);
-		whitePointLight2.Intensity = 1.0f;
-
-		Light blueSpotLight = {};
-		blueSpotLight.Type = 2;
-		blueSpotLight.Range = 10;
-		blueSpotLight.Direction = XMFLOAT3(0.0f, -1.0f, 0.0f);
-		blueSpotLight.Position = XMFLOAT3(6.0f, 1.5f, 0.0f);
-		blueSpotLight.Color = XMFLOAT3(0.0f, 0.0f, 1.0f);
-		blueSpotLight.Intensity = 1.0f;
-		blueSpotLight.SpotInnerAngle = 25.0f * (XM_PI / 180);
-		blueSpotLight.SpotOuterAngle = 40.0f * (XM_PI / 180);
-
-		lights.push_back(redDirectionalLight);
-		lights.push_back(greenDirectionalLight);
-		lights.push_back(blueDirectionalLight);
-		lights.push_back(whitePointLight1);
-		lights.push_back(whitePointLight2);
-		lights.push_back(blueSpotLight);
+		lights.push_back(directionalLight1);
+		lights.push_back(directionalLight2);
+		lights.push_back(directionalLight3);
 	}
 }
 
@@ -486,6 +460,11 @@ void Game::ImGuiCreate(float deltaTime)
 				ImGui::PopID();
 			}
 		} 
+
+		// Create a new menu for Materials and Textures
+		if (ImGui::CollapsingHeader("Skybox")) {
+			ImGui::Checkbox("Toggle Skybox", &drawSkybox);
+		}
 	}
 	ImGui::End();
 }
@@ -663,19 +642,22 @@ void Game::Draw(float deltaTime, float totalTime)
 		gameEntity->Draw();
 	}
 
-	// Prepare to Draw the Skybox
-	// Set the data for the Vertex Shader constant buffer
-	SkyVSData skyVSData{};
-	skyVSData.ViewMatrix = cameras[activeCamera]->GetViewMatrix();
-	skyVSData.ProjectionMatrix = cameras[activeCamera]->GetProjectionMatrix();
+	// For turning on and off the skybox
+	if (drawSkybox) {
+		// Prepare to Draw the Skybox
+		// Set the data for the Vertex Shader constant buffer
+		SkyVSData skyVSData{};
+		skyVSData.ViewMatrix = cameras[activeCamera]->GetViewMatrix();
+		skyVSData.ProjectionMatrix = cameras[activeCamera]->GetProjectionMatrix();
 
-	FillAndBindNextConstantBuffer(
-		&skyVSData,
-		sizeof(SkyVSData),
-		D3D11_VERTEX_SHADER,
-		0);
+		FillAndBindNextConstantBuffer(
+			&skyVSData,
+			sizeof(SkyVSData),
+			D3D11_VERTEX_SHADER,
+			0);
 
-	skybox->Draw();
+		skybox->Draw();
+	}
 
 	// Frame END
 	// - These should happen exactly ONCE PER FRAME

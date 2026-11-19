@@ -65,6 +65,7 @@ private:
 	int menuStyle;
 	std::vector<DirectX::XMFLOAT4> colorTints;
 	DirectX::XMFLOAT3 offset;
+	bool drawSkybox;
 
 	// Create shared_ptr vector for the mesh shapes
 	std::vector<std::shared_ptr<Mesh>> meshes;

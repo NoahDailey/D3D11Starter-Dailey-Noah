@@ -45,6 +45,7 @@ float4 main(VertexToPixel input) : SV_TARGET
     // Determine the surface and texture color of the pixel
     float3 surfaceColor = SurfaceTexture.Sample(BasicSampler, input.uv).rgb;
     surfaceColor *= ColorTint;
+    surfaceColor = pow(surfaceColor, 2.2f);
     
     // Determine how to get the normal map
     float3 unpackedNormals = NormalTexture.Sample(BasicSampler, input.uv).rgb * 2 - 1;
@@ -85,5 +86,9 @@ float4 main(VertexToPixel input) : SV_TARGET
 
         }
     }
-    return float4(finalColor, 1);
+    
+    // Calculate the required gamma adjustment for the lighting
+    float3 gammaAdjustedColor = pow(finalColor, 1.0f / 2.2f);
+    
+    return float4(gammaAdjustedColor, 1);
 }
