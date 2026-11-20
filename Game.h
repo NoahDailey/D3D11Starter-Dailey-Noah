@@ -48,6 +48,7 @@ private:
 	Microsoft::WRL::ComPtr<ID3D11PixelShader> pixelShaderNormal;
 	Microsoft::WRL::ComPtr<ID3D11PixelShader> pixelShaderCustom;
 	Microsoft::WRL::ComPtr<ID3D11PixelShader> pixelShaderCombinedTexture;
+	Microsoft::WRL::ComPtr<ID3D11PixelShader> pixelShaderPBR;
 
 	// Skybox related content
 	std::shared_ptr<Sky> skybox;
