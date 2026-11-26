@@ -295,13 +295,13 @@ void Game::LoadShadersAndCreateGeometry()
 		std::shared_ptr<Mesh> cube = std::make_shared<Mesh>(FixPath("../../Assets/Meshes/cube.obj").c_str());
 		std::shared_ptr<Mesh> sphere = std::make_shared<Mesh>(FixPath("../../Assets/Meshes/sphere.obj").c_str());
 		//std::shared_ptr<Mesh> cylinder = std::make_shared<Mesh>(FixPath("../../Assets/Meshes/cylinder.obj").c_str());
-		//std::shared_ptr<Mesh> helix = std::make_shared<Mesh>(FixPath("../../Assets/Meshes/helix.obj").c_str());
+		std::shared_ptr<Mesh> helix = std::make_shared<Mesh>(FixPath("../../Assets/Meshes/helix.obj").c_str());
 		//std::shared_ptr<Mesh> torus = std::make_shared<Mesh>(FixPath("../../Assets/Meshes/torus.obj").c_str());
 		//std::shared_ptr<Mesh> quad = std::make_shared<Mesh>(FixPath("../../Assets/Meshes/quad.obj").c_str());
 		//std::shared_ptr<Mesh> quadDoubleSided = std::make_shared<Mesh>(FixPath("../../Assets/Meshes/quad_double_sided.obj").c_str());
 
 		//meshes.insert(meshes.end(), { cube, sphere, cylinder, helix, torus, quad, quadDoubleSided });
-		meshes.insert(meshes.end(), { cube, sphere });
+		meshes.insert(meshes.end(), { cube, sphere, helix });
 
 		// Create the skybox from the made data
 		skybox = std::make_shared<Sky>(samplerState, cube, skyPixelShader, skyVertexShader, 
@@ -311,47 +311,28 @@ void Game::LoadShadersAndCreateGeometry()
 
 		// Create the gameObjects
 		// push back all of the premade and adjusted gameEntities
-		gameObjects.push_back(std::make_shared<GameEntities>("Bronze Cube", sphere, bronze));
-		gameObjects.push_back(std::make_shared<GameEntities>("Cobblestone Sphere", sphere, cobblestone));
-		gameObjects.push_back(std::make_shared<GameEntities>("Floor Cube", sphere, floor));
-		gameObjects.push_back(std::make_shared<GameEntities>("Paint Sphere", sphere, paint));
-		gameObjects.push_back(std::make_shared<GameEntities>("Rough Cube", sphere, rough));
 		gameObjects.push_back(std::make_shared<GameEntities>("Scratched Sphere", sphere, scratched));
-		gameObjects.push_back(std::make_shared<GameEntities>("Wood Cube", sphere, wood));
+		gameObjects.push_back(std::make_shared<GameEntities>("Paint Helix", helix, paint));
+		gameObjects.push_back(std::make_shared<GameEntities>("Cobblestone Cube", cube, cobblestone));
+		gameObjects.push_back(std::make_shared<GameEntities>("Wood Cube", cube, wood));
 
 		// Adjust positions
-		gameObjects[0]->GetTransform()->MoveAbsolute(-9.0f, 0.0f, 0.0f);
-		gameObjects[1]->GetTransform()->MoveAbsolute(-6.0f, 0.0f, 0.0f);
-		gameObjects[2]->GetTransform()->MoveAbsolute(-3.0f, 0.0f, 0.0f);
-		gameObjects[4]->GetTransform()->MoveAbsolute(+3.0f, 0.0f, 0.0f);
-		gameObjects[5]->GetTransform()->MoveAbsolute(+6.0f, 0.0f, 0.0f);
-		gameObjects[6]->GetTransform()->MoveAbsolute(+9.0f, 0.0f, 0.0f);
+		gameObjects[0]->GetTransform()->MoveAbsolute(-3.0f, 0.0f, 0.0f);
+		gameObjects[2]->GetTransform()->MoveAbsolute(+3.0f, 0.0f, 0.0f);
+		gameObjects[3]->GetTransform()->MoveAbsolute(0.0f, -2.5f, 0.0f);
+		gameObjects[3]->GetTransform()->SetScale(20.0f, 1.0f, 20.0f);
 
 		// Lighting variable initialization
 		ambientColor = XMFLOAT3(0.1f, 0.15f, 0.18f);
 
 		// Create the 5 lights that we want to have
-		Light directionalLight1 = {};
-		directionalLight1.Type = 0;
-		directionalLight1.Direction = XMFLOAT3(5.0f, -10.0f, 5.0f);
-		directionalLight1.Color = XMFLOAT3(1.0f, 1.0f, 1.0f);
-		directionalLight1.Intensity = 1.0f;
+		Light directionalLight = {};
+		directionalLight.Type = 0;
+		directionalLight.Direction = XMFLOAT3(0.0f, -10.0f, -10.0f);
+		directionalLight.Color = XMFLOAT3(1.0f, 1.0f, 1.0f);
+		directionalLight.Intensity = 1.0f;
 
-		Light directionalLight2 = {};
-		directionalLight2.Type = 0;
-		directionalLight2.Direction = XMFLOAT3(0.0f, -50.0f, 0.0f);
-		directionalLight2.Color = XMFLOAT3(1.0f, 1.0f, 1.0f);
-		directionalLight2.Intensity = 0.1f;
-
-		Light directionalLight3 = {};
-		directionalLight3.Type = 0;
-		directionalLight3.Direction = XMFLOAT3(-5.0f, 0.0f, -5.0f);
-		directionalLight3.Color = XMFLOAT3(1.0f, 1.0f, 1.0f);
-		directionalLight3.Intensity = 0.1f;
-
-		lights.push_back(directionalLight1);
-		lights.push_back(directionalLight2);
-		lights.push_back(directionalLight3);
+		lights.push_back(directionalLight);
 	}
 }
 
@@ -653,12 +634,18 @@ void Game::Update(float deltaTime, float totalTime)
 	if (Input::KeyDown(VK_ESCAPE))
 		Window::Quit();
 
-	for (std::shared_ptr<GameEntities> entity : gameObjects) {
-		entity->GetTransform()->Rotate(0.0f, deltaTime, 0.0f);
-	}
+	//for (std::shared_ptr<GameEntities> entity : gameObjects) {
+	//	entity->GetTransform()->Rotate(0.0f, deltaTime, 0.0f);
+	//}
 
-	// Scaling calue that can be used later
-	//float scaleValue = (float)sin(totalTime) * 0.25f + 1.0f;
+	float ocsilate = (float)sin(totalTime) / 200;
+
+	gameObjects[0]->GetTransform()->MoveRelative(0.0f, ocsilate, 0.0f);
+	gameObjects[0]->GetTransform()->Rotate(0.0f, deltaTime, 0.0f);
+	gameObjects[1]->GetTransform()->MoveRelative(0.0f, ocsilate, 0.0f);
+	gameObjects[1]->GetTransform()->Rotate(0.0f, deltaTime, 0.0f);
+	gameObjects[2]->GetTransform()->MoveRelative(0.0f, ocsilate, 0.0f);
+	gameObjects[2]->GetTransform()->Rotate(0.0f, deltaTime, 0.0f);
 
 	cameras[activeCamera]->Update(deltaTime);
 }
